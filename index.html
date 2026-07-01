@@ -6,7 +6,7 @@
 <title>小卡片分享</title>
 <meta property="og:title" content="小卡片分享" id="og-title">
 <meta property="og:description" content="有人给你分享了一张卡片" id="og-desc">
-<meta property="og:image" content="" id="og-image">
+<meta property="og:image" content="demo.jpg" id="og-image">
 <meta property="og:url" content="" id="og-url">
 <meta property="og:type" content="website">
 <style>
@@ -194,9 +194,6 @@ var isWX = /MicroMessenger/i.test(navigator.userAgent);
 var App = { cardData: null, geoDone: false };
 var WX_READY = false;
 
-// 签名接口
-var SIGN_URL = 'http://ms.gstai.com/phone/ajax_sign_vue.php';
-
 // ========== Toast ==========
 var _tt;
 function toast(m, d){ clearTimeout(_tt); var e = $('#toast'); e.textContent = m; e.classList.add('on'); _tt = setTimeout(function(){ e.classList.remove('on') }, d || 2000); }
@@ -260,18 +257,18 @@ function updateUI(){
 // ========== JSSDK 初始化（可选，签名接口可用时生效） ==========
 function initJSSDK(){
   if(!isWX) return;
-  // 给签名接口传无hash的URL
-  var url = encodeURIComponent(location.href.split('#')[0]);
-  fetch(SIGN_URL + '?url=' + url)
+  var pageUrl = location.href.split('#')[0];
+  var encUrl = encodeURIComponent(pageUrl);
+  fetch('/api/sign?url=' + encUrl)
     .then(function(r){ return r.json(); })
     .then(function(data){
       var p = data.signPackage || data;
-      if(!p.signature){ console.log('[WX] 签名接口返回异常:', data); return; }
+      if(!p.signature){ console.log('[WX] sign fail:', data); return; }
 
       wx.config({
         debug: false,
         appId: p.appId,
-        timestamp: p.timestamp,
+        timestamp: parseInt(p.timestamp),
         nonceStr: p.nonceStr,
         signature: p.signature,
         jsApiList: ['updateAppMessageShareData','updateTimelineShareData','onMenuShareAppMessage','onMenuShareTimeline']
@@ -279,8 +276,16 @@ function initJSSDK(){
 
       wx.ready(function(){
         WX_READY = true;
-        updateWX(_s.title, _s.desc, _s.link, _s.img);
-        console.log('[WX] JSSDK ready, sharing configured');
+        var d = _s;
+        var cfg = { title: d.title, desc: d.desc, link: d.link, imgUrl: d.img, type: 'link', dataUrl: '' };
+        try{
+          wx.updateAppMessageShareData(cfg);
+          wx.updateTimelineShareData(cfg);
+        } catch(e){}
+        // 老 API 兼容
+        try{ wx.onMenuShareAppMessage(cfg); } catch(e){}
+        try{ wx.onMenuShareTimeline(cfg); } catch(e){}
+        console.log('[WX] JSSDK ready, imgUrl=' + d.img);
       });
 
       wx.error(function(err){
@@ -288,7 +293,7 @@ function initJSSDK(){
       });
     })
     .catch(function(e){
-      console.error('[WX] 签名获取失败（可能HTTPS/HTTP混用）:', e.message);
+      console.error('[WX] sign fetch failed:', e.message);
     });
 }
 
