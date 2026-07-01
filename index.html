@@ -255,15 +255,14 @@ function initJSSDK(){
 
       console.log('[WX] 签名成功 appId=' + p.appId + ' 配置中...');
       wx.config({
-        debug: true,
+        debug: false,
         appId: p.appId,
         timestamp: parseInt(p.timestamp),
         nonceStr: p.nonceStr,
         signature: p.signature,
         jsApiList: [
-          'updateAppMessageShareData',
-          'updateTimelineShareData',
           'onMenuShareAppMessage',
+          'onMenuShareTimeline',
           'showOptionMenu'
         ]
       });
@@ -271,22 +270,17 @@ function initJSSDK(){
       wx.ready(function(){
         wx.showOptionMenu();
 
-        // 从 _SD 读取（同步脚本已在页面加载时根据 hash 更新好了）
         var s = window._SD;
         document.title = s.title;
 
         // 分享给朋友
-        wx.updateAppMessageShareData({
-          title: s.title, desc: s.desc, link: s.link,
-          imgUrl: s.imgUrl, type: 'link', dataUrl: ''
-        });
         wx.onMenuShareAppMessage({
           title: s.title, desc: s.desc, link: s.link,
           imgUrl: s.imgUrl, type: 'link', dataUrl: ''
         });
 
         // 分享到朋友圈
-        wx.updateTimelineShareData({
+        wx.onMenuShareTimeline({
           title: s.title, link: s.link, imgUrl: s.imgUrl
         });
 
