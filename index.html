@@ -359,6 +359,12 @@ function go(mode, data){
   else{ show($('#p-viewer')); renderViewer(); }
 }
 
+// ========== UI ==========
+function updateUI(){
+  if(isWX){ $('#wx-banner').classList.remove('hidden'); $('#not-wx').classList.add('hidden'); }
+  else{ $('#wx-banner').classList.add('hidden'); $('#not-wx').classList.remove('hidden'); }
+}
+
 // ========== Editor ==========
 function renderEditor(){
   updateUI(); $('#share-overlay').classList.add('hidden');
