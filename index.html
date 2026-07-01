@@ -183,18 +183,6 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
 <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
 
 <script>
-// ================================================================
-// ★ 统一分享数据（JSSDK 初始化成功后从这里读取）
-// ================================================================
-var _s = {
-  title: '小卡片分享',
-  desc: '',
-  link: 'https://html-demo-lilac.vercel.app/',
-  imgUrl: 'https://html-demo-lilac.vercel.app/demo.jpg'
-};
-</script>
-
-<script>
 (function(){
 'use strict';
 
@@ -203,7 +191,6 @@ var $$ = function(s){ return document.querySelectorAll(s) };
 var B = document.body;
 var isWX = /MicroMessenger/i.test(navigator.userAgent);
 var App = { cardData: null, geoDone: false };
-var WX_READY = false;
 
 // ========== Toast ==========
 var _tt;
@@ -241,37 +228,30 @@ function updateOG(title, desc, img){
   if(img){ (new Image()).src = img; }
 }
 
-// ========== JSSDK 更新分享数据（参考传统 JSSDK 模式） ==========
+// ========== 更新分享数据 ==========
 function updateShareData(title, desc, link, imgUrl){
   if(imgUrl && imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
   if(!imgUrl) imgUrl = 'https://html-demo-lilac.vercel.app/demo.jpg';
 
-  // 更新全局数据
-  _s.title = title;
-  _s.desc = desc;
-  _s.link = link;
-  _s.imgUrl = imgUrl;
-
   // 更新 OG 标签
   updateOG(title, desc, imgUrl);
 
-  // 如果 JSSDK 已就绪，同步更新
-  if(window.wx && WX_READY){
+  // JSSDK 方式更新分享数据
+  if(window.wx){
     var cfg = { title: title, desc: desc, link: link, imgUrl: imgUrl, type: 'link', dataUrl: '' };
-    try{ wx.updateAppMessageShareData(cfg); } catch(e){ console.error(e); }
-    try{ wx.updateTimelineShareData(cfg); } catch(e){ console.error(e); }
-    try{ wx.onMenuShareAppMessage(cfg); } catch(e){ console.error(e); }
-    try{ wx.onMenuShareTimeline(cfg); } catch(e){ console.error(e); }
+    wx.updateAppMessageShareData(cfg);
+    wx.updateTimelineShareData(cfg);
   }
 }
 
-// ========== JSSDK 初始化（参考你的传统模式） ==========
+// ========== JSSDK 初始化 ==========
+// 参考微信官方文档：从后端获取签名 → wx.config → wx.ready → 设置分享数据
 function initJSSDK(){
   if(!isWX) return;
 
   var pageUrl = location.href.split('#')[0];
   fetch('/api/sign?url=' + encodeURIComponent(pageUrl))
-    .then(function(r){ return r.json(); })
+    .then(function(res){ return res.json(); })
     .then(function(data){
       var p = data.signPackage || data;
       if(!p.signature){ console.log('[WX] 签名获取失败:', JSON.stringify(data)); return; }
@@ -283,36 +263,41 @@ function initJSSDK(){
         nonceStr: p.nonceStr,
         signature: p.signature,
         jsApiList: [
-          'showOptionMenu',
           'updateAppMessageShareData',
-          'updateTimelineShareData',
-          'onMenuShareAppMessage',
-          'onMenuShareTimeline'
+          'updateTimelineShareData'
         ]
       });
 
       wx.ready(function(){
-        WX_READY = true;
+        var title = App.cardData ? App.cardData.t : '小卡片分享';
+        var desc = App.cardData ? (App.cardData.d || App.cardData.t) : '';
+        var imgUrl = (App.cardData && App.cardData.i) ? App.cardData.i : 'https://html-demo-lilac.vercel.app/demo.jpg';
+        if(imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
 
-        // 显示右上角菜单
-        wx.showOptionMenu();
+        wx.updateAppMessageShareData({
+          title: title,
+          desc: desc,
+          link: location.href,
+          imgUrl: imgUrl,
+          type: 'link',
+          dataUrl: '',
+          success: function(){ console.log('[WX] 分享朋友配置成功'); }
+        });
 
-        var d = _s;
-        var cfg = { title: d.title, desc: d.desc, link: d.link, imgUrl: d.imgUrl, type: 'link', dataUrl: '' };
+        wx.updateTimelineShareData({
+          title: title,
+          link: location.href,
+          imgUrl: imgUrl,
+          type: 'link',
+          dataUrl: '',
+          success: function(){ console.log('[WX] 朋友圈配置成功'); }
+        });
 
-        // 新 API
-        try{ wx.updateAppMessageShareData(cfg); } catch(e){ console.error(e); }
-        try{ wx.updateTimelineShareData(cfg); } catch(e){ console.error(e); }
-
-        // 老 API 兼容
-        try{ wx.onMenuShareAppMessage(cfg); } catch(e){ console.error(e); }
-        try{ wx.onMenuShareTimeline(cfg); } catch(e){ console.error(e); }
-
-        console.log('[WX] JSSDK ready, imgUrl=' + d.imgUrl);
+        console.log('[WX] JSSDK ready, imgUrl=' + imgUrl);
       });
 
-      wx.error(function(err){
-        console.error('[WX] JSSDK config 失败:', JSON.stringify(err));
+      wx.error(function(res){
+        console.error('[WX] 配置失败：', res);
       });
     })
     .catch(function(e){
