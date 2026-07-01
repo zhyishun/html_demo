@@ -163,16 +163,9 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
     <div class="card clickable" id="card-view">
       <div class="card-img"><img id="vw-img" src="" alt="" class="hidden"><div class="card-ph" id="vw-ph">🖼️</div></div>
       <div class="card-bd"><div class="ct" id="vw-t"></div><div class="cd" id="vw-d"></div></div>
-      <div class="card-ft"><span class="cf-t" id="vw-ft">点击卡片 · 授权共享位置</span><span class="cf-a">›</span></div>
+      <div class="card-ft"><span class="cf-t" id="vw-ft">点击卡片 · 查看详情并共享位置</span><span class="cf-a">›</span></div>
     </div>
-    <p class="tap-hint" id="tap-hint">👆 点击上方卡片授权并共享你的位置</p>
-    <div class="loading hidden" id="loc-load"><span class="spin"></span> 正在获取位置...</div>
-    <div class="loc-res hidden" id="loc-res">
-      <div class="lh">📍 我的位置</div>
-      <div class="lr"><span class="li">🏠</span><span class="la" id="la"></span></div>
-      <div class="lr"><span class="li">🌐</span><span class="lc" id="lc"></span></div>
-      <span class="ls" id="ls"></span><div class="lm" id="lm"></div>
-    </div>
+    <p class="tap-hint" id="tap-hint">👆 点击上方卡片查看详情</p>
     <div style="margin-top:24px;text-align:center"><button class="btn btn-o" id="btn-make">✏️ 我也要创建卡片</button></div>
   </div>
 </div>
@@ -236,36 +229,19 @@ function updateShareData(title, desc, link, imgUrl){
   // 更新 OG 标签
   updateOG(title, desc, imgUrl);
 
-  // JSSDK 方式更新分享数据
+  // JSSDK 更新分享数据
   if(window.wx){
-    // 分享给朋友：需要 title, desc, link, imgUrl, type
     wx.updateAppMessageShareData({
-      title: title,
-      desc: desc,
-      link: link,
-      imgUrl: imgUrl,
-      type: 'link',
-      dataUrl: ''
+      title: title, desc: desc, link: link, imgUrl: imgUrl,
+      type: 'link', dataUrl: ''
     });
     wx.onMenuShareAppMessage({
-      title: title,
-      desc: desc,
-      link: link,
-      imgUrl: imgUrl,
-      type: 'link',
-      dataUrl: ''
+      title: title, desc: desc, link: link, imgUrl: imgUrl,
+      type: 'link', dataUrl: ''
     });
 
-    // 分享到朋友圈：只需要 title, link, imgUrl（不支持 desc/type/dataUrl）
     wx.updateTimelineShareData({
-      title: title,
-      link: link,
-      imgUrl: imgUrl
-    });
-    wx.onMenuShareTimeline({
-      title: title,
-      link: link,
-      imgUrl: imgUrl
+      title: title, link: link, imgUrl: imgUrl
     });
   }
 }
@@ -291,7 +267,6 @@ function initJSSDK(){
           'updateAppMessageShareData',
           'updateTimelineShareData',
           'onMenuShareAppMessage',
-          'onMenuShareTimeline',
           'showOptionMenu'
         ]
       });
@@ -300,41 +275,24 @@ function initJSSDK(){
         wx.showOptionMenu();
 
         var title = App.cardData ? App.cardData.t : '小卡片分享';
-        var desc = App.cardData ? (App.cardData.d || App.cardData.t) : '';
+        var desc = App.cardData ? (App.cardData.d || App.cardData.t) : '有人给你分享了一张卡片';
         var imgUrl = (App.cardData && App.cardData.i) ? App.cardData.i : 'https://fengxiang.zhyishun.top/demo.jpg';
         if(imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
 
-        // 分享给朋友
         wx.updateAppMessageShareData({
-          title: title,
-          desc: desc,
-          link: location.href,
-          imgUrl: imgUrl,
-          type: 'link',
-          dataUrl: ''
+          title: title, desc: desc, link: location.href, imgUrl: imgUrl,
+          type: 'link', dataUrl: ''
         });
         wx.onMenuShareAppMessage({
-          title: title,
-          desc: desc,
-          link: location.href,
-          imgUrl: imgUrl,
-          type: 'link',
-          dataUrl: ''
+          title: title, desc: desc, link: location.href, imgUrl: imgUrl,
+          type: 'link', dataUrl: ''
         });
 
-        // 分享到朋友圈（注意：只有 title, link, imgUrl 三个参数）
         wx.updateTimelineShareData({
-          title: title,
-          link: location.href,
-          imgUrl: imgUrl
-        });
-        wx.onMenuShareTimeline({
-          title: title,
-          link: location.href,
-          imgUrl: imgUrl
+          title: title, link: location.href, imgUrl: imgUrl
         });
 
-        console.log('[WX] JSSDK ready, imgUrl=' + imgUrl);
+        console.log('[WX] JSSDK ready, title=' + title + ' imgUrl=' + imgUrl);
       });
 
       wx.error(function(res){
@@ -420,64 +378,11 @@ function renderViewer(){
   var d = App.cardData; if(!d){ go('editor'); return; }
   $('#vw-t').textContent = d.t || ''; $('#vw-d').textContent = d.d || '';
   setImg($('#vw-img'), $('#vw-ph'), d.i || '');
-  App.geoDone = false;
-  $('#loc-res').classList.add('hidden'); $('#loc-load').classList.add('hidden');
-  $('#tap-hint').classList.remove('hidden'); $('#vw-ft').textContent = '点击卡片 · 授权共享位置';
-}
-
-$('#card-view').addEventListener('click', function(){
-  if(App.geoDone) return; App.geoDone = true;
-  $('#tap-hint').classList.add('hidden'); $('#vw-ft').textContent = '获取位置中...';
-  $('#loc-load').classList.remove('hidden'); $('#loc-res').classList.add('hidden');
-  loc().then(function(r){
-    $('#loc-load').classList.add('hidden'); $('#vw-ft').textContent = '位置已共享 ✓';
-    $('#loc-res').classList.remove('hidden');
-    $('#la').textContent = r.addr || r.lat + ',' + r.lon;
-    $('#lc').textContent = r.lat.toFixed(6) + ', ' + r.lon.toFixed(6) + (r.acc ? ' (±' + r.acc + 'm)' : '');
-    if(r.src === 'gps'){ $('#ls').textContent = '📡 GPS · 高精度'; $('#ls').style.cssText = 'background:#E8F5E9;color:#2E7D32'; }
-    else{ $('#ls').textContent = '🌐 IP · 近似'; $('#ls').style.cssText = 'background:#FFF3E0;color:#E65100'; }
-    $('#lm').innerHTML = '<img src="https://staticmap.openstreetmap.de/staticmap.php?center=' + r.lat + ',' + r.lon + '&zoom=14&size=400x200&markers=' + r.lat + ',' + r.lon + ',red-pushpin" alt="地图" loading="lazy" onerror="this.innerHTML=\'<div style=padding:40px;text-align:center;color:#999>地图不可用</div>\'">';
-  }).catch(function(err){
-    $('#loc-load').classList.add('hidden'); $('#vw-ft').textContent = '点击卡片 · 授权共享位置';
-    $('#tap-hint').classList.remove('hidden'); toast('❌ ' + (err.message || '失败')); App.geoDone = false;
-  });
-});
-
-// ========== Location ==========
-function loc(){ return gps().catch(ipCo).catch(ipCom); }
-function gps(){
-  return new Promise(function(resolve, reject){
-    if(!navigator.geolocation) return reject(new Error('浏览器不支持GPS'));
-    var t = setTimeout(function(){ reject(new Error('GPS超时')); }, 10000);
-    navigator.geolocation.getCurrentPosition(function(pos){ clearTimeout(t);
-      var lat = pos.coords.latitude, lon = pos.coords.longitude, acc = pos.coords.accuracy;
-      rgeo(lat, lon).then(function(a){ resolve({ lat: lat, lon: lon, addr: a, src: 'gps', acc: Math.round(acc) }); });
-    }, function(){ clearTimeout(t); reject(new Error('GPS未授权')); }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 });
-  });
-}
-function ipCo(){
-  var c = new AbortController(), t = setTimeout(function(){ c.abort(); }, 5000);
-  return fetch('https://ipapi.co/json/', { signal: c.signal }).then(function(r){ clearTimeout(t); if(!r.ok) throw new Error('fail'); return r.json(); }).then(function(d){
-    if(d.error) throw new Error(d.reason);
-    return { lat: d.latitude, lon: d.longitude, addr: [d.city, d.region, d.country_name].filter(Boolean).join(', ') || d.latitude + ',' + d.longitude, src: 'ip', acc: null };
-  }).catch(function(e){ clearTimeout(t); throw e; });
-}
-function ipCom(){
-  return new Promise(function(resolve, reject){
-    var cb = '_ip_' + Date.now(), t = setTimeout(function(){ delete window[cb]; reject(new Error('IP超时')); }, 8000);
-    window[cb] = function(d){ clearTimeout(t); delete window[cb];
-      if(d && d.lat !== undefined){ resolve({ lat: d.lat, lon: d.lon, addr: [d.city, d.regionName, d.country].filter(Boolean).join(', ') || d.lat + ',' + d.lon, src: 'ip', acc: null }); }
-      else reject(new Error('无数据')); };
-    var s = document.createElement('script'); s.src = 'http://ip-api.com/json/?callback=' + cb + '&fields=lat,lon,city,regionName,country';
-    s.onerror = function(){ clearTimeout(t); delete window[cb]; reject(new Error('IP服务不可用')); }; document.head.appendChild(s);
-  });
-}
-var _gc = {}, _lg = 0;
-function rgeo(lat, lon){
-  var k = lat.toFixed(3) + ',' + lon.toFixed(3); if(_gc[k]) return Promise.resolve(_gc[k]);
-  var w = Math.max(0, 1100 - (Date.now() - _lg)); _lg = Date.now() + w;
-  var p = w ? new Promise(function(r){ setTimeout(r, w); }) : Promise.resolve();
-  return p.then(function(){ return fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon + '&zoom=18&addressdetails=1&accept-language=' + (navigator.language || 'zh-CN'), { headers: { 'User-Agent': 'Card/1.0' } }); }).then(function(r){ if(!r.ok) throw new Error('fail'); return r.json(); }).then(function(d){ _gc[k] = d.display_name || lat.toFixed(4) + ', ' + lon.toFixed(4); return _gc[k]; }).catch(function(){ return lat.toFixed(4) + ', ' + lon.toFixed(4); });
+  // 点击卡片跳转到详情页（位置授权在详情页完成）
+  $('#card-view').onclick = function(){
+    location.href = 'detail.html' + location.hash;
+  };
+  $('#tap-hint').classList.remove('hidden'); $('#vw-ft').textContent = '点击卡片 · 查看详情并共享位置';
 }
 
 // ========== Boot ==========
