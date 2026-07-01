@@ -180,34 +180,33 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
 <!-- ★★★ WeChat JSSDK (from your CDN) ★★★ -->
 <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
 
-<!-- ★★★ WeixinJSBridge 兜底（不依赖 JSSDK 签名，微信内一定可用） ★★★ -->
+<!-- ★★★ 统一分享数据（全局唯一数据源） ★★★ -->
 <script>
+window._SD = {
+  title: '小卡片分享',
+  desc:  '有人给你分享了一张卡片',
+  link:  'https://fengxiang.zhyishun.top/detail.html',
+  imgUrl:'https://fengxiang.zhyishun.top/demo.jpg'
+};
+
+// WeixinJSBridge — 分享时直接读 _SD，不依赖 DOM / OG / JSSDK 签名
 (function bindBridge(){
   function ready(){
     if(!window.WeixinJSBridge) return;
-
-    // 分享给朋友 — 回调里实时读 DOM，确保读到最新值
     window.WeixinJSBridge.on('menu:share:appmessage', function(){
-      var title = document.getElementById('og-title').getAttribute('content') || document.title || '小卡片分享';
-      var desc  = document.getElementById('og-desc').getAttribute('content') || '';
-      var link  = document.getElementById('og-url').getAttribute('content') || location.href;
-      var img   = document.getElementById('og-image').getAttribute('content') || '';
-      document.title = title;
+      var s = window._SD;
+      document.title = s.title;
       window.WeixinJSBridge.invoke('sendAppMessage', {
-        title: title, desc: desc, link: link,
-        img_url: img, img_width: '300', img_height: '300'
+        title: s.title, desc: s.desc, link: s.link,
+        img_url: s.imgUrl, img_width: '300', img_height: '300'
       }, function(){});
     });
-
-    // 分享到朋友圈 — 回调里实时读 DOM
     window.WeixinJSBridge.on('menu:share:timeline', function(){
-      var title = document.getElementById('og-title').getAttribute('content') || document.title || '小卡片分享';
-      var link  = document.getElementById('og-url').getAttribute('content') || location.href;
-      var img   = document.getElementById('og-image').getAttribute('content') || '';
-      document.title = title;
+      var s = window._SD;
+      document.title = s.title;
       window.WeixinJSBridge.invoke('shareTimeline', {
-        title: title, link: link,
-        img_url: img, img_width: '300', img_height: '300'
+        title: s.title, link: s.link,
+        img_url: s.imgUrl, img_width: '300', img_height: '300'
       }, function(){});
     });
   }
@@ -262,29 +261,36 @@ function updateOG(title, desc, img){
   if(img){ (new Image()).src = img; }
 }
 
-// ========== 更新分享数据 ==========
-function updateShareData(title, desc, link, imgUrl){
+// ========== 更新分享数据（更新全局 _SD + OG + JSSDK） ==========
+function updateShareData(title, desc, imgUrl){
   if(imgUrl && imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
   if(!imgUrl) imgUrl = 'https://fengxiang.zhyishun.top/demo.jpg';
 
-  // 更新 OG 标签（WeixinJSBridge 回调直接读 OG 标签，所以更新 OG 即可）
+  // ★ 更新全局唯一数据源（WeixinJSBridge 读这个）
+  _SD.title  = title  || '小卡片分享';
+  _SD.desc   = desc   || title || '有人给你分享了一张卡片';
+  _SD.link   = 'https://fengxiang.zhyishun.top/detail.html';
+  _SD.imgUrl = imgUrl;
+
+  // 同步 OG 标签
   updateOG(title, desc, imgUrl);
 
-  // JSSDK 更新分享数据
+  // 同步 JSSDK
   if(window.wx){
     wx.updateAppMessageShareData({
-      title: title, desc: desc, link: link, imgUrl: imgUrl,
-      type: 'link', dataUrl: ''
+      title: _SD.title, desc: _SD.desc, link: _SD.link,
+      imgUrl: _SD.imgUrl, type: 'link', dataUrl: ''
     });
     wx.onMenuShareAppMessage({
-      title: title, desc: desc, link: link, imgUrl: imgUrl,
-      type: 'link', dataUrl: ''
+      title: _SD.title, desc: _SD.desc, link: _SD.link,
+      imgUrl: _SD.imgUrl, type: 'link', dataUrl: ''
     });
-
     wx.updateTimelineShareData({
-      title: title, link: link, imgUrl: imgUrl
+      title: _SD.title, link: _SD.link, imgUrl: _SD.imgUrl
     });
   }
+
+  console.log('[SD] 分享数据已更新: title=' + _SD.title + ' desc=' + _SD.desc + ' link=' + _SD.link);
 }
 
 // ========== JSSDK 初始化 ==========
@@ -315,25 +321,21 @@ function initJSSDK(){
       wx.ready(function(){
         wx.showOptionMenu();
 
-        var title = App.cardData ? App.cardData.t : '小卡片分享';
-        var desc = App.cardData ? (App.cardData.d || App.cardData.t) : '有人给你分享了一张卡片';
-        var imgUrl = (App.cardData && App.cardData.i) ? App.cardData.i : 'https://fengxiang.zhyishun.top/demo.jpg';
-        if(imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
-
+        // 从全局 _SD 读取（此时可能已被 updateShareData 更新）
+        var s = window._SD;
         wx.updateAppMessageShareData({
-          title: title, desc: desc, link: location.href, imgUrl: imgUrl,
-          type: 'link', dataUrl: ''
+          title: s.title, desc: s.desc, link: s.link,
+          imgUrl: s.imgUrl, type: 'link', dataUrl: ''
         });
         wx.onMenuShareAppMessage({
-          title: title, desc: desc, link: location.href, imgUrl: imgUrl,
-          type: 'link', dataUrl: ''
+          title: s.title, desc: s.desc, link: s.link,
+          imgUrl: s.imgUrl, type: 'link', dataUrl: ''
         });
-
         wx.updateTimelineShareData({
-          title: title, link: location.href, imgUrl: imgUrl
+          title: s.title, link: s.link, imgUrl: s.imgUrl
         });
 
-        console.log('[WX] JSSDK ready, title=' + title + ' imgUrl=' + imgUrl);
+        console.log('[WX] JSSDK ready: title=' + s.title + ' imgUrl=' + s.imgUrl);
       });
 
       wx.error(function(res){
@@ -349,7 +351,7 @@ function initJSSDK(){
 function go(mode, data){
   if(data){
     App.cardData = data;
-    updateShareData(data.t, data.d || data.t, location.href, data.i || '');
+    updateShareData(data.t, data.d || data.t, data.i || '');
   }
   B.setAttribute('data-theme', (data && data.th) || 'green');
   B.setAttribute('data-mode', mode);
@@ -384,7 +386,7 @@ $('#form').addEventListener('submit', function(e){
   history.replaceState(null, '', location.origin + location.pathname + '#' + hash);
 
   // ★ 更新分享数据（同时更新 JSBridge 全局对象 + JSSDK + OG 标签）
-  updateShareData(d.t, d.d || d.t, location.href, d.i || '');
+  updateShareData(d.t, d.d || d.t, d.i || '');
 
   if(isWX){
     $('#share-overlay').classList.remove('hidden');
