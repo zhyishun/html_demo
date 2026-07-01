@@ -6,15 +6,15 @@
 <title>小卡片分享</title>
 <meta property="og:title" content="小卡片分享" id="og-title">
 <meta property="og:description" content="有人给你分享了一张卡片" id="og-desc">
-<meta property="og:image" content="https://html-demo-lilac.vercel.app/demo.jpg" id="og-image">
-<meta property="og:url" content="https://html-demo-lilac.vercel.app/" id="og-url">
+<meta property="og:image" content="https://fengxiang.zhyishun.top/demo.jpg" id="og-image">
+<meta property="og:url" content="https://fengxiang.zhyishun.top/" id="og-url">
 <meta property="og:type" content="website">
 
 <!-- ★ 同步脚本：浏览器「转发/分享」读 OG 标签前，先把 hash 里的卡片数据填进去 -->
 <script>
 (function(){
   try{
-    var BASE = 'https://html-demo-lilac.vercel.app';
+    var BASE = 'https://fengxiang.zhyishun.top';
     document.getElementById('og-image').setAttribute('content', BASE + '/demo.jpg');
     document.getElementById('og-url').setAttribute('content', BASE + '/');
 
@@ -221,7 +221,7 @@ function updateOG(title, desc, img){
   $('#og-title').setAttribute('content', title || '');
   $('#og-desc').setAttribute('content', desc || '');
   if(img && img.indexOf('//') === -1) img = location.origin + '/' + img.replace(/^\//,'');
-  if(!img) img = 'https://html-demo-lilac.vercel.app/demo.jpg';
+  if(!img) img = 'https://fengxiang.zhyishun.top/demo.jpg';
   $('#og-image').setAttribute('content', img);
   $('#og-url').setAttribute('content', location.href);
   // 预加载图片
@@ -231,7 +231,7 @@ function updateOG(title, desc, img){
 // ========== 更新分享数据 ==========
 function updateShareData(title, desc, link, imgUrl){
   if(imgUrl && imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
-  if(!imgUrl) imgUrl = 'https://html-demo-lilac.vercel.app/demo.jpg';
+  if(!imgUrl) imgUrl = 'https://fengxiang.zhyishun.top/demo.jpg';
 
   // 更新 OG 标签
   updateOG(title, desc, imgUrl);
@@ -271,7 +271,7 @@ function initJSSDK(){
       wx.ready(function(){
         var title = App.cardData ? App.cardData.t : '小卡片分享';
         var desc = App.cardData ? (App.cardData.d || App.cardData.t) : '';
-        var imgUrl = (App.cardData && App.cardData.i) ? App.cardData.i : 'https://html-demo-lilac.vercel.app/demo.jpg';
+        var imgUrl = (App.cardData && App.cardData.i) ? App.cardData.i : 'https://fengxiang.zhyishun.top/demo.jpg';
         if(imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
 
         wx.updateAppMessageShareData({
