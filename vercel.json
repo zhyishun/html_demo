@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/sign",
+      "destination": "http://ms.gstai.com/phone/ajax_sign_vue.php"
+    }
+  ]
+}
