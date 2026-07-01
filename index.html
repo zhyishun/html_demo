@@ -6,7 +6,7 @@
 <title>小卡片分享</title>
 <meta property="og:title" content="小卡片分享" id="og-title">
 <meta property="og:description" content="有人给你分享了一张卡片" id="og-desc">
-<meta property="og:image" content="" id="og-image">
+<meta property="og:image" content="https://html-demo-lilac.vercel.app/demo.jpg" id="og-image">
 <meta property="og:url" content="" id="og-url">
 <meta property="og:type" content="website">
 <style>
@@ -170,6 +170,9 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
 
 <div class="toast" id="toast"></div>
 
+<!-- WeChat JSSDK -->
+<script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
+
 <script>
 (function(){
 'use strict';
@@ -179,16 +182,14 @@ var $=function(s){return document.querySelector(s)};
 var $$=function(s){return document.querySelectorAll(s)};
 var B=document.body;
 var isWX=/MicroMessenger/i.test(navigator.userAgent);
-var wxReady=false;
+var wxConfigured=false;
 var App={cardData:null,geoDone:false};
 
-// ★★★ 全局分享数据 — JSBridge 回调引用这个对象 ★★★
-var SHARE={
-  title:'小卡片分享',
-  desc:'',
-  link:location.href,
-  img_url:''
-};
+// 分享数据
+var SHARE={title:'小卡片分享',desc:'',link:location.href,img:'https://html-demo-lilac.vercel.app/demo.jpg'};
+
+// JSSDK 签名接口
+var SIGN_URL='http://ms.gstai.com/phone/ajax_sign_vue.php';
 
 // ========== Toast ==========
 var _tt;
@@ -216,7 +217,7 @@ function setImg(el,ph,src){
 // ========== OG 标签 ==========
 function updateOG(title,desc,img){
   document.title=title||document.title;
-  var e;$('#og-title').setAttribute('content',title||'');
+  $('#og-title').setAttribute('content',title||'');
   $('#og-desc').setAttribute('content',desc||'');
   $('#og-image').setAttribute('content',img||'');
   $('#og-url').setAttribute('content',location.href);
@@ -224,58 +225,117 @@ function updateOG(title,desc,img){
 
 // ========== UI ==========
 function updateUI(){
-  if(isWX||wxReady){$('#wx-banner').classList.remove('hidden');$('#not-wx').classList.add('hidden')}
+  if(isWX){$('#wx-banner').classList.remove('hidden');$('#not-wx').classList.add('hidden')}
   else{$('#wx-banner').classList.add('hidden');$('#not-wx').classList.remove('hidden')}
 }
 
-// ========== ★ 核心：页面加载即绑定 JSBridge ★ ==========
-function initBridge(){
+// ========== ★ 核心：设置微信分享（JSSDK + 老桥兜底） ==========
+function setWXShare(title,desc,link,imgUrl){
+  SHARE.title=title;SHARE.desc=desc;SHARE.link=link;SHARE.img=imgUrl||'';
+  updateOG(title,desc,SHARE.img);
+
+  // 预加载图片
+  if(SHARE.img){(new Image()).src=SHARE.img}
+
+  // 方式1：JSSDK（已配置时直接更新）
+  if(window.wx && wxConfigured){
+    if(wx.updateAppMessageShareData){
+      wx.updateAppMessageShareData({title:title,desc:desc,link:link,imgUrl:SHARE.img,type:'link',dataUrl:''});
+    }
+    if(wx.updateTimelineShareData){
+      wx.updateTimelineShareData({title:title,desc:desc,link:link,imgUrl:SHARE.img,type:'link',dataUrl:''});
+    }
+    if(wx.onMenuShareAppMessage){
+      wx.onMenuShareAppMessage({title:title,desc:desc,link:link,imgUrl:SHARE.img,type:'link',dataUrl:''});
+    }
+    if(wx.onMenuShareTimeline){
+      wx.onMenuShareTimeline({title:title,desc:desc,link:link,imgUrl:SHARE.img,type:'link',dataUrl:''});
+    }
+  }
+}
+
+// ========== ★ 微信 JSSDK 初始化 ==========
+function initWXConfig(){
+  if(!isWX) return;
+
+  // 签名接口需要当前页面 URL
+  var url=encodeURIComponent(location.href.split('#')[0]);
+
+  fetch(SIGN_URL+'?url='+url)
+    .then(function(r){return r.json()})
+    .then(function(data){
+      var pkg=data.signPackage||data;
+      if(!pkg.signature){console.error('[WX] 签名获取失败',data);return}
+
+      console.log('[WX] 签名成功，开始 config');
+
+      wx.config({
+        debug:false,
+        appId:pkg.appId,
+        timestamp:pkg.timestamp,
+        nonceStr:pkg.nonceStr,
+        signature:pkg.signature,
+        jsApiList:[
+          'updateAppMessageShareData',
+          'updateTimelineShareData',
+          'onMenuShareAppMessage',
+          'onMenuShareTimeline',
+          'getLocation'
+        ]
+      });
+
+      wx.ready(function(){
+        wxConfigured=true;
+        console.log('[WX] wx.ready — 设置分享数据');
+        setWXShare(SHARE.title,SHARE.desc,SHARE.link,SHARE.img);
+      });
+
+      wx.error(function(err){
+        console.error('[WX] wx.error:',err);
+        // 签名失败时尝试老桥兜底
+        initOldBridge();
+      });
+    })
+    .catch(function(e){
+      console.error('[WX] 签名请求失败:',e);
+      // 网络失败也尝试老桥兜底
+      initOldBridge();
+    });
+}
+
+// ========== 老 JSBridge 兜底 ==========
+function initOldBridge(){
   function bind(){
     if(!window.WeixinJSBridge)return;
-    wxReady=true;updateUI();
-    console.log('[WX] JSBridge ready');
+    console.log('[WX] OldBridge fallback');
 
-    // 发送给朋友
     WeixinJSBridge.on('menu:share:appmessage',function(){
       var d=SHARE;
-      console.log('[WX] appmessage img_url='+d.img_url);
       WeixinJSBridge.invoke('sendAppMessage',{
-        appid:'',img_url:d.img_url,img_width:'300',img_height:'300',
-        link:d.link,desc:d.desc,title:d.title
+        appid:'',title:d.title,desc:d.desc,link:d.link,
+        img_url:d.img,imgUrl:d.img,thumburl:d.img,
+        img_width:'300',img_height:'300',type:'link'
       },function(){});
     });
 
-    // 朋友圈
     WeixinJSBridge.on('menu:share:timeline',function(){
       var d=SHARE;
-      console.log('[WX] timeline img_url='+d.img_url);
       WeixinJSBridge.invoke('shareTimeline',{
-        img_url:d.img_url,img_width:'300',img_height:'300',
-        link:d.link,desc:d.desc,title:d.title
+        title:d.title,desc:d.desc,link:d.link,
+        img_url:d.img,imgUrl:d.img,thumburl:d.img,
+        img_width:'300',img_height:'300',type:'link'
       },function(){});
     });
   }
-
   if(window.WeixinJSBridge){bind()}
-  document.addEventListener('WeixinJSBridgeReady',bind,false);
+  else{document.addEventListener('WeixinJSBridgeReady',bind,false)}
 }
 
 // ========== Mode Switch ==========
 function go(mode,data){
   if(data){
     App.cardData=data;
-    SHARE.title=data.t;
-    SHARE.desc=data.d||data.t;
-    SHARE.link=location.href;
-    // ★ 预加载图片 + 更新 OG
-    if(data.i){
-      SHARE.img_url=data.i;
-      var p=document.getElementById('wx-preload');
-      if(!p){p=document.createElement('img');p.id='wx-preload';p.style.cssText='position:absolute;width:1px;height:1px;opacity:0.01;top:0;left:0';document.body.appendChild(p)}
-      p.src=data.i;
-      (new Image()).src=data.i;
-    }
-    updateOG(SHARE.title,SHARE.desc,data.i||'');
+    setWXShare(data.t,data.d||data.t,location.href,data.i||'');
   }
   B.setAttribute('data-theme',(data&&data.th)||'green');
   B.setAttribute('data-mode',mode);
@@ -304,17 +364,10 @@ $('#form').addEventListener('submit',function(e){
   var hash=enc(d);
   history.replaceState(null,'',location.origin+location.pathname+'#'+hash);
 
-  // 更新全局分享数据
-  SHARE.title=d.t;SHARE.desc=d.d||d.t;SHARE.link=location.href;SHARE.img_url=d.i||'';
-  if(d.i){
-    (new Image()).src=d.i;
-    var p=document.getElementById('wx-preload');
-    if(!p){p=document.createElement('img');p.id='wx-preload';p.style.cssText='position:absolute;width:1px;height:1px;opacity:0.01;top:0;left:0';document.body.appendChild(p)}
-    p.src=d.i;
-  }
-  updateOG(SHARE.title,SHARE.desc,SHARE.img_url);
+  // ★ 更新 JSSDK 分享数据
+  setWXShare(d.t,d.d||d.t,location.href,d.i||'');
 
-  if(isWX||wxReady){
+  if(isWX){
     $('#share-overlay').classList.remove('hidden');
     $('#subtitle').textContent='点击右上角 ··· → 发送给朋友 / 朋友圈';
     toast('👆 点击右上角 ··· 分享');
@@ -410,7 +463,15 @@ function rgeo(lat,lon){
 // ========== Boot ==========
 $('#btn-make').addEventListener('click',function(){App.cardData=null;go('editor')});
 window.addEventListener('hashchange',function(){var d=dec(location.hash.slice(1));go(d?'viewer':'editor',d||undefined)});
-function boot(){initBridge();updateUI();var d=dec(location.hash.slice(1));go(d?'viewer':'editor',d||undefined)}
+function boot(){
+  updateUI();
+  var d=dec(location.hash.slice(1));
+  // ★ 先初始化 JSSDK 签名
+  initWXConfig();
+  // 同时绑老桥兜底
+  initOldBridge();
+  go(d?'viewer':'editor',d||undefined);
+}
 document.addEventListener('DOMContentLoaded',boot);
 })();
 </script>
