@@ -6,17 +6,17 @@
 <title>小卡片分享</title>
 <meta property="og:title" content="小卡片分享" id="og-title">
 <meta property="og:description" content="有人给你分享了一张卡片" id="og-desc">
-<meta property="og:image" content="" id="og-image">
-<meta property="og:url" content="" id="og-url">
+<meta property="og:image" content="https://html-demo-lilac.vercel.app/demo.jpg" id="og-image">
+<meta property="og:url" content="https://html-demo-lilac.vercel.app/" id="og-url">
 <meta property="og:type" content="website">
 
 <!-- ★ 同步脚本：浏览器「转发/分享」读 OG 标签前，先把 hash 里的卡片数据填进去 -->
 <script>
 (function(){
   try{
-    // 始终设置 og:image 为绝对 URL（微信朋友圈要求绝对路径）
-    document.getElementById('og-image').setAttribute('content', location.origin + '/demo.jpg');
-    document.getElementById('og-url').setAttribute('content', location.href);
+    var BASE = 'https://html-demo-lilac.vercel.app';
+    document.getElementById('og-image').setAttribute('content', BASE + '/demo.jpg');
+    document.getElementById('og-url').setAttribute('content', BASE + '/');
 
     var h = location.hash.slice(1);
     if(!h) return;
@@ -29,7 +29,7 @@
       document.title = d.t;
       document.getElementById('og-title').setAttribute('content', d.t);
       document.getElementById('og-desc').setAttribute('content', d.d||d.t);
-      var imgUrl = d.i || (location.origin + '/demo.jpg');
+      var imgUrl = d.i || (BASE + '/demo.jpg');
       if(imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
       document.getElementById('og-image').setAttribute('content', imgUrl);
       document.getElementById('og-url').setAttribute('content', location.href);
@@ -186,7 +186,7 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
 // ================================================================
 // ★ 第一时间绑定 WeixinJSBridge（放最前面，不走 DOMContentLoaded）
 // ================================================================
-var _s = { title:'小卡片分享', desc:'', link:location.href, img:location.origin+'/demo.jpg' };
+var _s = { title:'小卡片分享', desc:'', link:'https://html-demo-lilac.vercel.app/', img:'https://html-demo-lilac.vercel.app/demo.jpg' };
 
 (function bindWX(){
   function b(){
@@ -252,7 +252,7 @@ function updateOG(title, desc, img){
   $('#og-desc').setAttribute('content', desc || '');
   // 确保 og:image 为绝对 URL（微信朋友圈爬虫要求）
   if(img && img.indexOf('//') === -1) img = location.origin + '/' + img.replace(/^\//,'');
-  if(!img) img = location.origin + '/demo.jpg';
+  if(!img) img = 'https://html-demo-lilac.vercel.app/demo.jpg';
   $('#og-image').setAttribute('content', img);
   $('#og-url').setAttribute('content', location.href);
 }
@@ -261,7 +261,7 @@ function updateOG(title, desc, img){
 function updateWX(title, desc, link, imgUrl){
   // 确保图片 URL 为绝对路径（微信朋友圈要求绝对 URL）
   if(imgUrl && imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
-  if(!imgUrl) imgUrl = location.origin + '/demo.jpg';
+  if(!imgUrl) imgUrl = 'https://html-demo-lilac.vercel.app/demo.jpg';
   // 更新全局对象（JSBridge 回调引用此对象）
   _s.title = title;
   _s.desc = desc;
