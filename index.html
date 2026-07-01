@@ -184,31 +184,14 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
 
 <script>
 // ================================================================
-// ★ 第一时间绑定 WeixinJSBridge（放最前面，不走 DOMContentLoaded）
+// ★ 统一分享数据（JSSDK 初始化成功后从这里读取）
 // ================================================================
-var _s = { title:'小卡片分享', desc:'', link:'https://html-demo-lilac.vercel.app/', img:'https://html-demo-lilac.vercel.app/demo.jpg' };
-
-(function bindWX(){
-  function b(){
-    if(!window.WeixinJSBridge) return;
-    window.WeixinJSBridge.on('menu:share:appmessage', function(){
-      var d = _s;
-      window.WeixinJSBridge.invoke('sendAppMessage', {
-        appid: '', title: d.title, desc: d.desc, link: d.link,
-        img_url: d.img, img_width: '300', img_height: '300'
-      }, function(){});
-    });
-    window.WeixinJSBridge.on('menu:share:timeline', function(){
-      var d = _s;
-      window.WeixinJSBridge.invoke('shareTimeline', {
-        title: d.title, link: d.link,
-        img_url: d.img, img_width: '300', img_height: '300'
-      }, function(){});
-    });
-  }
-  if(window.WeixinJSBridge) b();
-  document.addEventListener('WeixinJSBridgeReady', b, false);
-})();
+var _s = {
+  title: '小卡片分享',
+  desc: '',
+  link: 'https://html-demo-lilac.vercel.app/',
+  imgUrl: 'https://html-demo-lilac.vercel.app/demo.jpg'
+};
 </script>
 
 <script>
@@ -250,54 +233,48 @@ function updateOG(title, desc, img){
   document.title = title || document.title;
   $('#og-title').setAttribute('content', title || '');
   $('#og-desc').setAttribute('content', desc || '');
-  // 确保 og:image 为绝对 URL（微信朋友圈爬虫要求）
   if(img && img.indexOf('//') === -1) img = location.origin + '/' + img.replace(/^\//,'');
   if(!img) img = 'https://html-demo-lilac.vercel.app/demo.jpg';
   $('#og-image').setAttribute('content', img);
   $('#og-url').setAttribute('content', location.href);
+  // 预加载图片
+  if(img){ (new Image()).src = img; }
 }
 
-// ========== 更新微信分享数据 ==========
-function updateWX(title, desc, link, imgUrl){
-  // 确保图片 URL 为绝对路径（微信朋友圈要求绝对 URL）
+// ========== JSSDK 更新分享数据（参考传统 JSSDK 模式） ==========
+function updateShareData(title, desc, link, imgUrl){
   if(imgUrl && imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
   if(!imgUrl) imgUrl = 'https://html-demo-lilac.vercel.app/demo.jpg';
-  // 更新全局对象（JSBridge 回调引用此对象）
+
+  // 更新全局数据
   _s.title = title;
   _s.desc = desc;
   _s.link = link;
-  _s.img = imgUrl;
-  updateOG(title, desc, _s.img);
+  _s.imgUrl = imgUrl;
 
-  // 如果 JSSDK 已就绪，同时用 JSSDK 更新
+  // 更新 OG 标签
+  updateOG(title, desc, imgUrl);
+
+  // 如果 JSSDK 已就绪，同步更新
   if(window.wx && WX_READY){
-    var cfg = { title: title, desc: desc, link: link, imgUrl: _s.img, type: 'link', dataUrl: '' };
-    try{ wx.updateAppMessageShareData(cfg); } catch(e){}
-    try{ wx.updateTimelineShareData(cfg); } catch(e){}
-    try{ wx.onMenuShareAppMessage(cfg); } catch(e){}
-    try{ wx.onMenuShareTimeline(cfg); } catch(e){}
+    var cfg = { title: title, desc: desc, link: link, imgUrl: imgUrl, type: 'link', dataUrl: '' };
+    try{ wx.updateAppMessageShareData(cfg); } catch(e){ console.error(e); }
+    try{ wx.updateTimelineShareData(cfg); } catch(e){ console.error(e); }
+    try{ wx.onMenuShareAppMessage(cfg); } catch(e){ console.error(e); }
+    try{ wx.onMenuShareTimeline(cfg); } catch(e){ console.error(e); }
   }
-
-  // 预加载图片
-  if(_s.img){ (new Image()).src = _s.img; }
 }
 
-// ========== UI ==========
-function updateUI(){
-  if(isWX){ $('#wx-banner').classList.remove('hidden'); $('#not-wx').classList.add('hidden'); }
-  else{ $('#wx-banner').classList.add('hidden'); $('#not-wx').classList.remove('hidden'); }
-}
-
-// ========== JSSDK 初始化（可选，签名接口可用时生效） ==========
+// ========== JSSDK 初始化（参考你的传统模式） ==========
 function initJSSDK(){
   if(!isWX) return;
+
   var pageUrl = location.href.split('#')[0];
-  var encUrl = encodeURIComponent(pageUrl);
-  fetch('/api/sign?url=' + encUrl)
+  fetch('/api/sign?url=' + encodeURIComponent(pageUrl))
     .then(function(r){ return r.json(); })
     .then(function(data){
       var p = data.signPackage || data;
-      if(!p.signature){ console.log('[WX] sign fail:', data); return; }
+      if(!p.signature){ console.log('[WX] 签名获取失败:', JSON.stringify(data)); return; }
 
       wx.config({
         debug: false,
@@ -305,29 +282,41 @@ function initJSSDK(){
         timestamp: parseInt(p.timestamp),
         nonceStr: p.nonceStr,
         signature: p.signature,
-        jsApiList: ['updateAppMessageShareData','updateTimelineShareData','onMenuShareAppMessage','onMenuShareTimeline']
+        jsApiList: [
+          'showOptionMenu',
+          'updateAppMessageShareData',
+          'updateTimelineShareData',
+          'onMenuShareAppMessage',
+          'onMenuShareTimeline'
+        ]
       });
 
       wx.ready(function(){
         WX_READY = true;
+
+        // 显示右上角菜单
+        wx.showOptionMenu();
+
         var d = _s;
-        var cfg = { title: d.title, desc: d.desc, link: d.link, imgUrl: d.img, type: 'link', dataUrl: '' };
-        try{
-          wx.updateAppMessageShareData(cfg);
-          wx.updateTimelineShareData(cfg);
-        } catch(e){}
+        var cfg = { title: d.title, desc: d.desc, link: d.link, imgUrl: d.imgUrl, type: 'link', dataUrl: '' };
+
+        // 新 API
+        try{ wx.updateAppMessageShareData(cfg); } catch(e){ console.error(e); }
+        try{ wx.updateTimelineShareData(cfg); } catch(e){ console.error(e); }
+
         // 老 API 兼容
-        try{ wx.onMenuShareAppMessage(cfg); } catch(e){}
-        try{ wx.onMenuShareTimeline(cfg); } catch(e){}
-        console.log('[WX] JSSDK ready, imgUrl=' + d.img);
+        try{ wx.onMenuShareAppMessage(cfg); } catch(e){ console.error(e); }
+        try{ wx.onMenuShareTimeline(cfg); } catch(e){ console.error(e); }
+
+        console.log('[WX] JSSDK ready, imgUrl=' + d.imgUrl);
       });
 
       wx.error(function(err){
-        console.error('[WX] JSSDK error:', JSON.stringify(err));
+        console.error('[WX] JSSDK config 失败:', JSON.stringify(err));
       });
     })
     .catch(function(e){
-      console.error('[WX] sign fetch failed:', e.message);
+      console.error('[WX] 签名接口请求失败:', e.message);
     });
 }
 
@@ -335,7 +324,7 @@ function initJSSDK(){
 function go(mode, data){
   if(data){
     App.cardData = data;
-    updateWX(data.t, data.d || data.t, location.href, data.i || '');
+    updateShareData(data.t, data.d || data.t, location.href, data.i || '');
   }
   B.setAttribute('data-theme', (data && data.th) || 'green');
   B.setAttribute('data-mode', mode);
@@ -364,7 +353,7 @@ $('#form').addEventListener('submit', function(e){
   history.replaceState(null, '', location.origin + location.pathname + '#' + hash);
 
   // ★ 更新分享数据（同时更新 JSBridge 全局对象 + JSSDK + OG 标签）
-  updateWX(d.t, d.d || d.t, location.href, d.i || '');
+  updateShareData(d.t, d.d || d.t, location.href, d.i || '');
 
   if(isWX){
     $('#share-overlay').classList.remove('hidden');
