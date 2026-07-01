@@ -9,6 +9,28 @@
 <meta property="og:image" content="demo.jpg" id="og-image">
 <meta property="og:url" content="" id="og-url">
 <meta property="og:type" content="website">
+
+<!-- ★ 同步脚本：浏览器「转发/分享」读 OG 标签前，先把 hash 里的卡片数据填进去 -->
+<script>
+(function(){
+  try{
+    var h = location.hash.slice(1);
+    if(!h) return;
+    h = h.replace(/-/g,'+').replace(/_/g,'/');
+    while(h.length%4) h += '=';
+    var bin = atob(h), bytes = new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    var d = JSON.parse(new TextDecoder().decode(bytes));
+    if(d.v===1 && d.t){
+      document.title = d.t;
+      document.getElementById('og-title').setAttribute('content', d.t);
+      document.getElementById('og-desc').setAttribute('content', d.d||d.t);
+      document.getElementById('og-image').setAttribute('content', d.i||'demo.jpg');
+      document.getElementById('og-url').setAttribute('content', location.href);
+    }
+  }catch(e){}
+})();
+</script>
 <style>
 :root{--green:#07C160;--green-d:#06AD56;--link:#576B95;--bg:#EDEDED;--card:#fff;--t1:#191919;--t2:#999;--t3:#B2B2B2;--border:#E5E5E5;--shadow:0 1px 6px rgba(0,0,0,.08);--radius:12px;--r:8px;--font:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;--max:448px;--theme:#07C160;--theme-d:#06AD56}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
