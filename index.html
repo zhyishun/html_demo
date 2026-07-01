@@ -11,20 +11,29 @@
 <meta property="og:url" content="https://fengxiang.zhyishun.top/detail.html" id="og-url">
 <meta property="og:type" content="website">
 
-<!-- ★ 同步脚本：浏览器「转发/分享」读 OG 标签前，先把 hash 里的卡片数据填进去 -->
+<!-- ★ 全局分享数据（最早定义，同步脚本会更新它） -->
+<script>
+window._SD = {
+  title: '小卡片分享',
+  desc:  '有人给你分享了一张卡片',
+  link:  'https://fengxiang.zhyishun.top/detail.html',
+  imgUrl:'https://fengxiang.zhyishun.top/demo.jpg'
+};
+</script>
+
+<!-- ★ 同步脚本：解析 hash，同时更新 OG 标签和 _SD -->
 <script>
 (function(){
   try{
     var BASE = 'https://fengxiang.zhyishun.top';
-    var FIXED_LINK = 'https://fengxiang.zhyishun.top/detail.html'; // ★ 写死的跳转URL
+    var FIXED_LINK = 'https://fengxiang.zhyishun.top/detail.html';
 
     var h = location.hash.slice(1);
     if(!h){
-      // 无 hash：确保默认 OG 标签为绝对 URL
       document.getElementById('og-title').setAttribute('content', '小卡片分享');
       document.getElementById('og-desc').setAttribute('content', '有人给你分享了一张卡片');
       document.getElementById('og-image').setAttribute('content', BASE + '/demo.jpg');
-      document.getElementById('og-url').setAttribute('content', FIXED_LINK); // ★ 写死URL
+      document.getElementById('og-url').setAttribute('content', FIXED_LINK);
       return;
     }
     h = h.replace(/-/g,'+').replace(/_/g,'/');
@@ -39,7 +48,13 @@
       var imgUrl = d.i || (BASE + '/demo.jpg');
       if(imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
       document.getElementById('og-image').setAttribute('content', imgUrl);
-      document.getElementById('og-url').setAttribute('content', FIXED_LINK); // ★ 写死URL
+      document.getElementById('og-url').setAttribute('content', FIXED_LINK);
+
+      // ★ 同步更新 _SD（WeixinJSBridge 读这个）
+      window._SD.title  = d.t;
+      window._SD.desc   = d.d || d.t;
+      window._SD.link   = FIXED_LINK;
+      window._SD.imgUrl = imgUrl;
     }
   }catch(e){}
 })();
@@ -182,15 +197,8 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
 <!-- ★★★ WeChat JSSDK (from your CDN) ★★★ -->
 <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
 
-<!-- ★★★ 统一分享数据（全局唯一数据源） ★★★ -->
+<!-- ★★★ WeixinJSBridge 兜底（分享时读 _SD，不依赖 JSSDK 签名） ★★★ -->
 <script>
-window._SD = {
-  title: '小卡片分享',
-  desc:  '有人给你分享了一张卡片',
-  link:  'https://fengxiang.zhyishun.top/detail.html', // ★ 写死URL
-  imgUrl:'https://fengxiang.zhyishun.top/demo.jpg'
-};
-
 // WeixinJSBridge — 分享时直接读 _SD，不依赖 DOM / OG / JSSDK 签名
 (function bindBridge(){
   function ready(){
@@ -258,10 +266,10 @@ function updateOG(title, desc, img){
   if(img && img.indexOf('//') === -1) img = location.origin + '/' + img.replace(/^\//,'');
   if(!img) img = 'https://fengxiang.zhyishun.top/demo.jpg';
   $('#og-image').setAttribute('content', img);
-  
+
   // ★ 关键修改：将 og:url 写死为 detail.html，防止微信抓取当前页面地址
-  $('#og-url').setAttribute('content', 'https://fengxiang.zhyishun.top/detail.html'); 
-  
+  $('#og-url').setAttribute('content', 'https://fengxiang.zhyishun.top/detail.html');
+
   // 预加载图片
   if(img){ (new Image()).src = img; }
 }
@@ -386,19 +394,18 @@ $('#form').addEventListener('submit', function(e){
   e.preventDefault();
   var d = { v:1, t:$('#tit').value.trim(), d:$('#desc').value.trim(), i:$('#img').value.trim(), th:B.getAttribute('data-theme')||'green' };
   if(!d.t){ toast('⚠️ 请输入卡片标题'); $('#tit').focus(); return; }
-  App.cardData = d;
   var hash = enc(d);
-  history.replaceState(null, '', location.origin + location.pathname + '#' + hash);
-
-  // ★ 更新分享数据（同时更新 JSBridge 全局对象 + JSSDK + OG 标签）
-  updateShareData(d.t, d.d || d.t, d.i || '');
 
   if(isWX){
-    $('#share-overlay').classList.remove('hidden');
-    $('#subtitle').textContent = '点击右上角 ··· → 发送给朋友 / 朋友圈';
-    toast('👆 点击右上角 ··· 分享');
+    // ★ 关键：直接跳转到带 hash 的 URL，让页面重新加载
+    // WeixinJSBridge 在页面加载时绑定分享数据，纯 JS 更新无效
+    location.href = location.origin + location.pathname + '#' + hash;
   }else{
-    copyUrl(location.href).then(function(){ toast('✅ 已复制！发微信打开后点右上角分享'); }).catch(function(){ toast('⚠️ 复制失败'); });
+    // PC 端：复制链接
+    var url = location.origin + location.pathname + '#' + hash;
+    history.replaceState(null, '', url);
+    App.cardData = d;
+    copyUrl(url).then(function(){ toast('✅ 已复制！发微信打开后点右上角分享'); }).catch(function(){ toast('⚠️ 复制失败'); });
     $('#subtitle').textContent = '链接已复制，发微信打开后点右上角分享';
   }
 });
@@ -428,6 +435,14 @@ function renderViewer(){
   setImg($('#vw-img'), $('#vw-ph'), d.i || '');
   $('#tap-hint').classList.remove('hidden');
   $('#vw-ft').textContent = '点击卡片 · 查看详情并共享位置';
+
+  // 微信内显示分享引导遮罩
+  if(isWX){
+    updateUI();
+    $('#share-overlay').classList.remove('hidden');
+    $('#subtitle').textContent = '点击右上角 ··· → 发送给朋友 / 朋友圈';
+    toast('👆 点击右上角 ··· 分享');
+  }
 }
 
 // ========== Boot ==========
