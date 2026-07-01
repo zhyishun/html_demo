@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>卡片详情</title>
+<meta property="og:title" content="卡片详情" id="og-title">
+<meta property="og:description" content="查看卡片详情" id="og-desc">
+<meta property="og:image" content="https://fengxiang.zhyishun.top/demo.jpg" id="og-image">
+<meta property="og:url" content="" id="og-url">
+<meta property="og:type" content="website">
+
+<script>
+(function(){
+  try{
+    var BASE = 'https://fengxiang.zhyishun.top';
+    document.getElementById('og-image').setAttribute('content', BASE + '/demo.jpg');
+    document.getElementById('og-url').setAttribute('content', location.href);
+
+    var h = location.hash.slice(1);
+    if(!h) return;
+    h = h.replace(/-/g,'+').replace(/_/g,'/');
+    while(h.length%4) h += '=';
+    var bin = atob(h), bytes = new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    var d = JSON.parse(new TextDecoder().decode(bytes));
+    if(d.v===1 && d.t){
+      document.title = d.t;
+      document.getElementById('og-title').setAttribute('content', d.t);
+      document.getElementById('og-desc').setAttribute('content', d.d||d.t);
+      var imgUrl = d.i || (BASE + '/demo.jpg');
+      if(imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
+      document.getElementById('og-image').setAttribute('content', imgUrl);
+      document.getElementById('og-url').setAttribute('content', location.href);
+    }
+  }catch(e){}
+})();
+</script>
+<style>
+:root{--green:#07C160;--green-d:#06AD56;--link:#576B95;--bg:#EDEDED;--card:#fff;--t1:#191919;--t2:#999;--t3:#B2B2B2;--border:#E5E5E5;--shadow:0 1px 6px rgba(0,0,0,.08);--radius:12px;--r:8px;--font:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;--max:448px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100dvh;display:flex;justify-content:center;-webkit-font-smoothing:antialiased}
+.container{width:100%;max-width:var(--max);padding:20px 16px;padding-bottom:calc(env(safe-area-inset-bottom,16px)+40px)}
+.header{text-align:center;margin-bottom:16px}
+.header .icon{font-size:28px;margin-bottom:2px}
+.header h1{font-size:17px;font-weight:600}
+.card{background:var(--card);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:16px}
+.card-img{width:100%;height:200px;background:linear-gradient(135deg,#F0F0F0,#E8E8E8);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.card-img img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0}
+.card-img img.hidden,.card-ph.hidden{display:none}
+.card-ph{font-size:48px;opacity:.35;z-index:1}
+.card-bd{padding:14px 16px 12px}
+.card-bd .ct{font-size:17px;font-weight:500;line-height:1.4}
+.card-bd .cd{font-size:14px;color:var(--t2);margin-top:6px;line-height:1.5}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:12px 20px;font-size:16px;font-weight:500;font-family:var(--font);border:none;border-radius:var(--r);cursor:pointer;outline:none;transition:background .15s,transform .1s}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--green);color:#fff}
+.btn-p:active{background:var(--green-d)}
+.btn-o{background:var(--card);color:var(--green);border:1px solid var(--green)}
+.spin{display:inline-block;width:18px;height:18px;border:2px solid rgba(153,153,153,.3);border-top-color:#999;border-radius:50%;animation:_spin .7s linear infinite;vertical-align:middle}
+@keyframes _spin{to{transform:rotate(360deg)}}
+.loc-box{background:var(--card);border-radius:var(--radius);padding:16px;margin-top:12px;box-shadow:var(--shadow)}
+.loc-box .lh{font-size:15px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.loc-box .lr{display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;font-size:14px}
+.loc-box .li{font-size:16px;flex-shrink:0;margin-top:1px}
+.loc-box .la{color:var(--t1);line-height:1.5;word-break:break-all}
+.loc-box .lc{color:var(--t2);font-size:13px}
+.loc-box .ls{font-size:12px;padding:4px 8px;border-radius:4px;display:inline-block;margin-top:4px}
+.loc-box .lm{margin-top:10px;border-radius:8px;overflow:hidden;background:#F0F0F0}
+.loc-box .lm img{width:100%;height:auto;display:block}
+.loading{text-align:center;padding:24px;color:var(--t2)}
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) translateY(20px);background:rgba(0,0,0,.78);color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;pointer-events:none;opacity:0;transition:opacity .25s,transform .25s;z-index:9999}
+.toast.on{opacity:1;transform:translate(-50%,-50%) translateY(0)}
+.hidden{display:none !important}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div class="icon">📨</div>
+    <h1 id="page-title">卡片详情</h1>
+  </div>
+
+  <!-- 卡片展示 -->
+  <div class="card">
+    <div class="card-img"><img id="card-img" src="" alt="" class="hidden"><div class="card-ph" id="card-ph">🖼️</div></div>
+    <div class="card-bd"><div class="ct" id="card-t"></div><div class="cd" id="card-d"></div></div>
+  </div>
+
+  <!-- 位置授权按钮 -->
+  <button class="btn btn-p" id="btn-loc" onclick="getLocation()">📍 授权并共享我的位置</button>
+  <div class="loading hidden" id="loc-loading"><span class="spin"></span> 正在获取位置...</div>
+
+  <!-- 位置结果 -->
+  <div class="loc-box hidden" id="loc-result">
+    <div class="lh">📍 我的位置</div>
+    <div class="lr"><span class="li">🏠</span><span class="la" id="la"></span></div>
+    <div class="lr"><span class="li">🌐</span><span class="lc" id="lc"></span></div>
+    <span class="ls" id="ls"></span>
+    <div class="lm" id="lm"></div>
+  </div>
+
+  <!-- 错误提示 -->
+  <div class="loading hidden" id="loc-error" style="color:#EE0A24"></div>
+
+  <!-- 重新获取 -->
+  <button class="btn btn-o hidden" id="btn-retry" onclick="getLocation()" style="margin-top:12px">🔄 重新获取位置</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+var $ = function(s){ return document.querySelector(s) };
+var cardData = null;
+var geoDone = false;
+
+// Toast
+var _tt;
+function toast(m, d){
+  clearTimeout(_tt);
+  var e = $('#toast'); e.textContent = m; e.classList.add('on');
+  _tt = setTimeout(function(){ e.classList.remove('on') }, d || 2000);
+}
+
+// Base64 decode
+function b64d(s){
+  s = s.replace(/-/g,'+').replace(/_/g,'/');
+  while(s.length % 4) s += '=';
+  var bin = atob(s), b = new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++) b[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(b);
+}
+
+// 设置图片
+function setImg(el, ph, src){
+  if(!src){ el.classList.add('hidden'); ph.classList.remove('hidden'); el.removeAttribute('src'); return; }
+  var done = false;
+  el.onload = function(){ if(!done){ done=true; el.classList.remove('hidden'); ph.classList.add('hidden'); } };
+  el.onerror = function(){ if(!done){ done=true; el.classList.add('hidden'); ph.classList.remove('hidden'); } };
+  el.src = src;
+}
+
+// ========== 解析 hash，显示卡片 ==========
+function initCard(){
+  var h = location.hash.slice(1);
+  if(!h){ $('#page-title').textContent = '卡片详情'; return; }
+  try{
+    var d = JSON.parse(b64d(h));
+    if(d.v===1 && d.t){
+      cardData = d;
+      $('#card-t').textContent = d.t || '';
+      $('#card-d').textContent = d.d || '';
+      setImg($('#card-img'), $('#card-ph'), d.i || '');
+      document.title = d.t;
+      $('#page-title').textContent = d.t;
+    }
+  }catch(e){
+    console.error('解析卡片数据失败:', e);
+  }
+}
+
+// ========== 位置获取 ==========
+window.getLocation = function(){
+  if(geoDone){ toast('位置已获取，可点击"重新获取位置"'); return; }
+
+  $('#btn-loc').classList.add('hidden');
+  $('#loc-loading').classList.remove('hidden');
+  $('#loc-error').classList.add('hidden');
+  $('#loc-result').classList.add('hidden');
+  $('#btn-retry').classList.add('hidden');
+
+  gps()
+    .catch(ipCo)
+    .catch(ipCom)
+    .then(function(r){
+      geoDone = true;
+      $('#loc-loading').classList.add('hidden');
+      $('#loc-result').classList.remove('hidden');
+      $('#btn-retry').classList.remove('hidden');
+
+      $('#la').textContent = r.addr || r.lat + ', ' + r.lon;
+      $('#lc').textContent = r.lat.toFixed(6) + ', ' + r.lon.toFixed(6) + (r.acc ? ' (±' + r.acc + 'm)' : '');
+      if(r.src === 'gps'){
+        $('#ls').textContent = '📡 GPS · 高精度';
+        $('#ls').style.cssText = 'background:#E8F5E9;color:#2E7D32';
+      } else {
+        $('#ls').textContent = '🌐 IP · 近似';
+        $('#ls').style.cssText = 'background:#FFF3E0;color:#E65100';
+      }
+      $('#lm').innerHTML = '<img src="https://staticmap.openstreetmap.de/staticmap.php?center=' + r.lat + ',' + r.lon + '&zoom=14&size=400x200&markers=' + r.lat + ',' + r.lon + ',red-pushpin" alt="地图" loading="lazy" onerror="this.innerHTML=\'<div style=padding:40px;text-align:center;color:#999>地图不可用</div>\'">';
+    })
+    .catch(function(err){
+      $('#loc-loading').classList.add('hidden');
+      $('#btn-loc').classList.remove('hidden');
+      $('#loc-error').classList.remove('hidden');
+      $('#loc-error').textContent = '❌ ' + (err.message || '获取位置失败，请重试');
+    });
+};
+
+function gps(){
+  return new Promise(function(resolve, reject){
+    if(!navigator.geolocation) return reject(new Error('浏览器不支持GPS'));
+    var t = setTimeout(function(){ reject(new Error('GPS超时')); }, 10000);
+    navigator.geolocation.getCurrentPosition(function(pos){
+      clearTimeout(t);
+      var lat = pos.coords.latitude, lon = pos.coords.longitude, acc = pos.coords.accuracy;
+      rgeo(lat, lon).then(function(a){
+        resolve({ lat:lat, lon:lon, addr:a, src:'gps', acc:Math.round(acc) });
+      });
+    }, function(){
+      clearTimeout(t);
+      reject(new Error('GPS未授权，尝试IP定位...'));
+    }, { enableHighAccuracy:false, timeout:10000, maximumAge:60000 });
+  });
+}
+
+function ipCo(){
+  var c = new AbortController(), t = setTimeout(function(){ c.abort(); }, 5000);
+  return fetch('https://ipapi.co/json/', { signal: c.signal }).then(function(r){
+    clearTimeout(t);
+    if(!r.ok) throw new Error('fail');
+    return r.json();
+  }).then(function(d){
+    if(d.error) throw new Error(d.reason);
+    return {
+      lat:d.latitude, lon:d.longitude,
+      addr:[d.city, d.region, d.country_name].filter(Boolean).join(', ') || d.latitude+','+d.longitude,
+      src:'ip', acc:null
+    };
+  }).catch(function(e){ clearTimeout(t); throw e; });
+}
+
+function ipCom(){
+  return new Promise(function(resolve, reject){
+    var cb = '_ip_'+Date.now();
+    var t = setTimeout(function(){ delete window[cb]; reject(new Error('IP超时')); }, 8000);
+    window[cb] = function(d){
+      clearTimeout(t); delete window[cb];
+      if(d && d.lat !== undefined){
+        resolve({
+          lat:d.lat, lon:d.lon,
+          addr:[d.city, d.regionName, d.country].filter(Boolean).join(', ') || d.lat+','+d.lon,
+          src:'ip', acc:null
+        });
+      } else reject(new Error('无数据'));
+    };
+    var s = document.createElement('script');
+    s.src = 'http://ip-api.com/json/?callback='+cb+'&fields=lat,lon,city,regionName,country';
+    s.onerror = function(){ clearTimeout(t); delete window[cb]; reject(new Error('IP服务不可用')); };
+    document.head.appendChild(s);
+  });
+}
+
+var _gc={}, _lg=0;
+function rgeo(lat, lon){
+  var k = lat.toFixed(3)+','+lon.toFixed(3);
+  if(_gc[k]) return Promise.resolve(_gc[k]);
+  var w = Math.max(0, 1100-(Date.now()-_lg)); _lg=Date.now()+w;
+  var p = w ? new Promise(function(r){ setTimeout(r, w); }) : Promise.resolve();
+  return p.then(function(){
+    return fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+lat+'&lon='+lon+'&zoom=18&addressdetails=1&accept-language='+(navigator.language||'zh-CN'), {
+      headers:{ 'User-Agent':'Card/1.0' }
+    });
+  }).then(function(r){
+    if(!r.ok) throw new Error('fail');
+    return r.json();
+  }).then(function(d){
+    _gc[k] = d.display_name || lat.toFixed(4)+', '+lon.toFixed(4);
+    return _gc[k];
+  }).catch(function(){
+    return lat.toFixed(4)+', '+lon.toFixed(4);
+  });
+}
+
+// ========== Boot ==========
+initCard();
+})();
+</script>
+</body>
+</html>
