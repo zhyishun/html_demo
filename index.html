@@ -6,24 +6,17 @@
 <title>小卡片分享</title>
 <meta property="og:title" content="小卡片分享" id="og-title">
 <meta property="og:description" content="有人给你分享了一张卡片" id="og-desc">
-<meta property="og:image" content="https://html-demo-lilac.vercel.app/demo.jpg" id="og-image">
+<meta property="og:image" content="" id="og-image">
 <meta property="og:url" content="" id="og-url">
 <meta property="og:type" content="website">
 <style>
-:root {
-  --green:#07C160;--green-d:#06AD56;--link:#576B95;--bg:#EDEDED;--card:#fff;
-  --t1:#191919;--t2:#999;--t3:#B2B2B2;--border:#E5E5E5;
-  --shadow:0 1px 6px rgba(0,0,0,.08);--radius:12px;--r:8px;
-  --font:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
-  --max:448px;--theme:#07C160;--theme-d:#06AD56;
-}
+:root{--green:#07C160;--green-d:#06AD56;--link:#576B95;--bg:#EDEDED;--card:#fff;--t1:#191919;--t2:#999;--t3:#B2B2B2;--border:#E5E5E5;--shadow:0 1px 6px rgba(0,0,0,.08);--radius:12px;--r:8px;--font:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;--max:448px;--theme:#07C160;--theme-d:#06AD56}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100dvh;display:flex;justify-content:center;-webkit-font-smoothing:antialiased}
 body[data-theme="green"]{--theme:#07C160;--theme-d:#06AD56}
 body[data-theme="blue"]{--theme:#1989FA;--theme-d:#1676D4}
 body[data-theme="orange"]{--theme:#FF976A;--theme-d:#E87D52}
 body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
-
 .container{width:100%;max-width:var(--max);padding:20px 16px;padding-bottom:calc(env(safe-area-inset-bottom,16px)+20px)}
 .header{text-align:center;margin-bottom:20px}
 .header .icon{font-size:32px;margin-bottom:4px}
@@ -31,31 +24,26 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
 .header p{font-size:13px;color:var(--t3);margin-top:2px}
 .panel{display:none}
 .panel.active{display:block;animation:fadeIn .35s ease}
-
 .wx-banner{background:#E8F5E9;border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;text-align:center}
 .wx-banner .wx-ok{font-size:15px;font-weight:600;color:#2E7D32}
 .wx-banner .wx-h{font-size:12px;color:#666;margin-top:4px}
 .not-wx{background:#FFF3E0;border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;text-align:center;font-size:14px;color:#E65100}
-
 .share-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.75);z-index:9998;display:flex;align-items:flex-start;justify-content:flex-end}
 .share-pop{text-align:right;color:#fff;margin:12px 20px 0 0}
 .share-arrow{font-size:48px;line-height:1}
 .share-txt{font-size:16px;font-weight:600;margin:-4px 10px 0 0}
 .share-sub{font-size:13px;opacity:.8;margin:4px 10px 0 0}
-
 .fg{margin-bottom:16px}
 .fg label{display:block;font-size:14px;font-weight:500;margin-bottom:6px}
 .fg input,.fg textarea{width:100%;padding:10px 14px;font-size:15px;font-family:var(--font);border:1px solid var(--border);border-radius:var(--r);background:var(--card);color:var(--t1);outline:none;transition:border-color .2s}
 .fg input:focus,.fg textarea:focus{border-color:var(--theme)}
 .fg textarea{resize:vertical;min-height:80px;line-height:1.5}
 .count{text-align:right;font-size:12px;color:var(--t3);margin-top:4px}
-
 .dots{display:flex;gap:10px}
 .dot{width:38px;height:38px;border-radius:50%;border:3px solid transparent;cursor:pointer;outline:none;transition:transform .15s}
 .dot:active{transform:scale(.92)}
 .dot.on{border-color:var(--t1);box-shadow:0 0 0 2px #fff,0 0 0 4px var(--t1)}
 .d-green{background:#07C160}.d-blue{background:#1989FA}.d-orange{background:#FF976A}.d-red{background:#EE0A24}
-
 .card{background:var(--card);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin:16px 0}
 .card.clickable{cursor:pointer;transition:transform .15s}
 .card.clickable:active{transform:scale(.98)}
@@ -70,18 +58,13 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
 .card-ft .cf-t{font-size:13px;color:var(--link)}
 .card-ft .cf-a{color:#C7C7CC;font-size:14px}
 .tap-hint{text-align:center;font-size:12px;color:var(--t3);margin-top:8px}
-
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:12px 20px;font-size:16px;font-weight:500;font-family:var(--font);border:none;border-radius:var(--r);cursor:pointer;outline:none;transition:background .15s,transform .1s}
 .btn:active{transform:scale(.97)}
-.btn-p{background:var(--theme);color:#fff}
-.btn-p:hover{background:var(--theme-d)}
+.btn-p{background:var(--theme);color:#fff}.btn-p:hover{background:var(--theme-d)}
 .btn-o{background:var(--card);color:var(--theme);border:1px solid var(--theme)}
-.btn-s{background:var(--card);color:var(--t1);border:1px solid var(--border)}
 .btns{display:flex;gap:10px;margin-top:8px}.btns .btn{flex:1}
-
 .spin{display:inline-block;width:18px;height:18px;border:2px solid rgba(153,153,153,.3);border-top-color:#999;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
-
 .loc-res{background:#fff;border-radius:var(--radius);padding:16px;margin-top:16px;box-shadow:var(--shadow);text-align:left}
 .loc-res .lh{font-size:15px;font-weight:600;margin-bottom:10px}
 .loc-res .lr{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;font-size:14px}
@@ -92,12 +75,10 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
 .loc-res .lm{margin-top:10px;border-radius:8px;overflow:hidden;background:#F0F0F0}
 .loc-res .lm img{width:100%;height:auto;display:block}
 .loading{text-align:center;padding:20px;color:var(--t2)}
-
 .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) translateY(20px);background:rgba(0,0,0,.78);color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;pointer-events:none;opacity:0;transition:opacity .25s,transform .25s;z-index:9999}
 .toast.on{opacity:1;transform:translate(-50%,-50%) translateY(0)}
 .hidden{display:none !important}
 @keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-
 @media(min-width:720px){.container{max-width:720px}.erow{display:flex;gap:24px;align-items:flex-start}.erow .ef{flex:1}.erow .ep{flex:1;position:sticky;top:20px}.plabel{font-size:14px;font-weight:500;color:var(--t2);margin-bottom:8px;display:block!important}}
 @media(max-width:719px){.plabel{display:none!important}}
 </style>
@@ -125,7 +106,7 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
     </div>
   </div>
 
-  <!-- ===== EDITOR ===== -->
+  <!-- EDITOR -->
   <div class="panel active" id="p-editor">
     <div class="erow">
       <div class="ef">
@@ -148,7 +129,7 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
     </div>
   </div>
 
-  <!-- ===== VIEWER ===== -->
+  <!-- VIEWER -->
   <div class="panel" id="p-viewer">
     <p style="text-align:center;font-size:13px;color:var(--t3);margin-bottom:8px">📨 有人给你分享了一张卡片</p>
     <div class="card clickable" id="card-view">
@@ -170,309 +151,288 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
 
 <div class="toast" id="toast"></div>
 
-<!-- WeChat JSSDK -->
+<!-- ★★★ WeChat JSSDK (from your CDN) ★★★ -->
 <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
+
+<script>
+// ================================================================
+// ★ 第一时间绑定 WeixinJSBridge（放最前面，不走 DOMContentLoaded）
+// ================================================================
+var _s = { title:'小卡片分享', desc:'', link:location.href, img:'' };
+
+(function bindWX(){
+  function b(){
+    if(!window.WeixinJSBridge) return;
+    window.WeixinJSBridge.on('menu:share:appmessage', function(){
+      var d = _s;
+      window.WeixinJSBridge.invoke('sendAppMessage', {
+        appid: '', title: d.title, desc: d.desc, link: d.link,
+        img_url: d.img, img_width: '300', img_height: '300'
+      }, function(){});
+    });
+    window.WeixinJSBridge.on('menu:share:timeline', function(){
+      var d = _s;
+      window.WeixinJSBridge.invoke('shareTimeline', {
+        title: d.title, link: d.link,
+        img_url: d.img, img_width: '300', img_height: '300'
+      }, function(){});
+    });
+  }
+  if(window.WeixinJSBridge) b();
+  document.addEventListener('WeixinJSBridgeReady', b, false);
+})();
+</script>
 
 <script>
 (function(){
 'use strict';
 
-// ========== 全局状态 ==========
-var $=function(s){return document.querySelector(s)};
-var $$=function(s){return document.querySelectorAll(s)};
-var B=document.body;
-var isWX=/MicroMessenger/i.test(navigator.userAgent);
-var wxConfigured=false;
-var App={cardData:null,geoDone:false};
+var $ = function(s){ return document.querySelector(s) };
+var $$ = function(s){ return document.querySelectorAll(s) };
+var B = document.body;
+var isWX = /MicroMessenger/i.test(navigator.userAgent);
+var App = { cardData: null, geoDone: false };
+var WX_READY = false;
 
-// 分享数据
-var SHARE={title:'小卡片分享',desc:'',link:location.href,img:'https://html-demo-lilac.vercel.app/demo.jpg'};
-
-// JSSDK 签名接口
-var SIGN_URL='http://ms.gstai.com/phone/ajax_sign_vue.php';
+// 签名接口
+var SIGN_URL = 'http://ms.gstai.com/phone/ajax_sign_vue.php';
 
 // ========== Toast ==========
 var _tt;
-function toast(m,d){clearTimeout(_tt);var e=$('#toast');e.textContent=m;e.classList.add('on');_tt=setTimeout(function(){e.classList.remove('on')},d||2000)}
+function toast(m, d){ clearTimeout(_tt); var e = $('#toast'); e.textContent = m; e.classList.add('on'); _tt = setTimeout(function(){ e.classList.remove('on') }, d || 2000); }
 
 // ========== Panel ==========
-function show(p){$$('.panel').forEach(function(e){e.classList.remove('active')});p.classList.add('active')}
+function show(p){ $$('.panel').forEach(function(e){ e.classList.remove('active') }); p.classList.add('active'); }
 
 // ========== Base64 ==========
-function b64e(s){var b=new TextEncoder().encode(s),r='';b.forEach(function(v){r+=String.fromCharCode(v)});return btoa(r).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
-function b64d(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var bin=atob(s),b=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)b[i]=bin.charCodeAt(i);return new TextDecoder().decode(b)}
-function enc(d){return b64e(JSON.stringify(d))}
-function dec(h){try{if(!h)return null;var d=JSON.parse(b64d(h));return(d.v===1&&d.t&&d.t.trim())?d:null}catch(e){return null}}
+function b64e(s){ var b = new TextEncoder().encode(s), r = ''; b.forEach(function(v){ r += String.fromCharCode(v) }); return btoa(r).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function b64d(s){ s = s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length % 4) s += '='; var bin = atob(s), b = new Uint8Array(bin.length); for(var i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i); return new TextDecoder().decode(b); }
+function enc(d){ return b64e(JSON.stringify(d)); }
+function dec(h){ try{ if(!h) return null; var d = JSON.parse(b64d(h)); return (d.v === 1 && d.t && d.t.trim()) ? d : null; } catch(e){ return null; } }
 
 // ========== 图片 ==========
-function setImg(el,ph,src){
-  if(!src){el.classList.add('hidden');ph.classList.remove('hidden');el.removeAttribute('src');return}
-  var done=false;
-  el.onload=function(){if(!done){done=true;el.classList.remove('hidden');ph.classList.add('hidden')}};
-  el.onerror=function(){if(!done){done=true;el.classList.add('hidden');ph.classList.remove('hidden')}};
-  el.src=src;
-  if(el.complete)setTimeout(function(){if(!done&&el.naturalWidth>0){done=true;el.classList.remove('hidden');ph.classList.add('hidden')}},50);
+function setImg(el, ph, src){
+  if(!src){ el.classList.add('hidden'); ph.classList.remove('hidden'); el.removeAttribute('src'); return; }
+  var done = false;
+  el.onload = function(){ if(!done){ done = true; el.classList.remove('hidden'); ph.classList.add('hidden'); } };
+  el.onerror = function(){ if(!done){ done = true; el.classList.add('hidden'); ph.classList.remove('hidden'); } };
+  el.src = src;
+  if(el.complete) setTimeout(function(){ if(!done && el.naturalWidth > 0){ done = true; el.classList.remove('hidden'); ph.classList.add('hidden'); } }, 50);
 }
 
 // ========== OG 标签 ==========
-function updateOG(title,desc,img){
-  document.title=title||document.title;
-  $('#og-title').setAttribute('content',title||'');
-  $('#og-desc').setAttribute('content',desc||'');
-  $('#og-image').setAttribute('content',img||'');
-  $('#og-url').setAttribute('content',location.href);
+function updateOG(title, desc, img){
+  document.title = title || document.title;
+  $('#og-title').setAttribute('content', title || '');
+  $('#og-desc').setAttribute('content', desc || '');
+  $('#og-image').setAttribute('content', img || '');
+  $('#og-url').setAttribute('content', location.href);
+}
+
+// ========== 更新微信分享数据 ==========
+function updateWX(title, desc, link, imgUrl){
+  // 更新全局对象（JSBridge 回调引用此对象）
+  _s.title = title;
+  _s.desc = desc;
+  _s.link = link;
+  _s.img = imgUrl || '';
+  updateOG(title, desc, _s.img);
+
+  // 如果 JSSDK 已就绪，同时用 JSSDK 更新
+  if(window.wx && WX_READY){
+    var cfg = { title: title, desc: desc, link: link, imgUrl: _s.img, type: 'link', dataUrl: '' };
+    try{ wx.updateAppMessageShareData(cfg); } catch(e){}
+    try{ wx.updateTimelineShareData(cfg); } catch(e){}
+    try{ wx.onMenuShareAppMessage(cfg); } catch(e){}
+    try{ wx.onMenuShareTimeline(cfg); } catch(e){}
+  }
+
+  // 预加载图片
+  if(_s.img){ (new Image()).src = _s.img; }
 }
 
 // ========== UI ==========
 function updateUI(){
-  if(isWX){$('#wx-banner').classList.remove('hidden');$('#not-wx').classList.add('hidden')}
-  else{$('#wx-banner').classList.add('hidden');$('#not-wx').classList.remove('hidden')}
+  if(isWX){ $('#wx-banner').classList.remove('hidden'); $('#not-wx').classList.add('hidden'); }
+  else{ $('#wx-banner').classList.add('hidden'); $('#not-wx').classList.remove('hidden'); }
 }
 
-// ========== ★ 核心：设置微信分享（JSSDK + 老桥兜底） ==========
-function setWXShare(title,desc,link,imgUrl){
-  SHARE.title=title;SHARE.desc=desc;SHARE.link=link;SHARE.img=imgUrl||'';
-  updateOG(title,desc,SHARE.img);
-
-  // 预加载图片
-  if(SHARE.img){(new Image()).src=SHARE.img}
-
-  // 方式1：JSSDK（已配置时直接更新）
-  if(window.wx && wxConfigured){
-    if(wx.updateAppMessageShareData){
-      wx.updateAppMessageShareData({title:title,desc:desc,link:link,imgUrl:SHARE.img,type:'link',dataUrl:''});
-    }
-    if(wx.updateTimelineShareData){
-      wx.updateTimelineShareData({title:title,desc:desc,link:link,imgUrl:SHARE.img,type:'link',dataUrl:''});
-    }
-    if(wx.onMenuShareAppMessage){
-      wx.onMenuShareAppMessage({title:title,desc:desc,link:link,imgUrl:SHARE.img,type:'link',dataUrl:''});
-    }
-    if(wx.onMenuShareTimeline){
-      wx.onMenuShareTimeline({title:title,desc:desc,link:link,imgUrl:SHARE.img,type:'link',dataUrl:''});
-    }
-  }
-}
-
-// ========== ★ 微信 JSSDK 初始化 ==========
-function initWXConfig(){
+// ========== JSSDK 初始化（可选，签名接口可用时生效） ==========
+function initJSSDK(){
   if(!isWX) return;
-
-  // 签名接口需要当前页面 URL
-  var url=encodeURIComponent(location.href.split('#')[0]);
-
-  fetch(SIGN_URL+'?url='+url)
-    .then(function(r){return r.json()})
+  // 给签名接口传无hash的URL
+  var url = encodeURIComponent(location.href.split('#')[0]);
+  fetch(SIGN_URL + '?url=' + url)
+    .then(function(r){ return r.json(); })
     .then(function(data){
-      var pkg=data.signPackage||data;
-      if(!pkg.signature){console.error('[WX] 签名获取失败',data);return}
-
-      console.log('[WX] 签名成功，开始 config');
+      var p = data.signPackage || data;
+      if(!p.signature){ console.log('[WX] 签名接口返回异常:', data); return; }
 
       wx.config({
-        debug:false,
-        appId:pkg.appId,
-        timestamp:pkg.timestamp,
-        nonceStr:pkg.nonceStr,
-        signature:pkg.signature,
-        jsApiList:[
-          'updateAppMessageShareData',
-          'updateTimelineShareData',
-          'onMenuShareAppMessage',
-          'onMenuShareTimeline',
-          'getLocation'
-        ]
+        debug: false,
+        appId: p.appId,
+        timestamp: p.timestamp,
+        nonceStr: p.nonceStr,
+        signature: p.signature,
+        jsApiList: ['updateAppMessageShareData','updateTimelineShareData','onMenuShareAppMessage','onMenuShareTimeline']
       });
 
       wx.ready(function(){
-        wxConfigured=true;
-        console.log('[WX] wx.ready — 设置分享数据');
-        setWXShare(SHARE.title,SHARE.desc,SHARE.link,SHARE.img);
+        WX_READY = true;
+        updateWX(_s.title, _s.desc, _s.link, _s.img);
+        console.log('[WX] JSSDK ready, sharing configured');
       });
 
       wx.error(function(err){
-        console.error('[WX] wx.error:',err);
-        // 签名失败时尝试老桥兜底
-        initOldBridge();
+        console.error('[WX] JSSDK error:', JSON.stringify(err));
       });
     })
     .catch(function(e){
-      console.error('[WX] 签名请求失败:',e);
-      // 网络失败也尝试老桥兜底
-      initOldBridge();
+      console.error('[WX] 签名获取失败（可能HTTPS/HTTP混用）:', e.message);
     });
-}
-
-// ========== 老 JSBridge 兜底 ==========
-function initOldBridge(){
-  function bind(){
-    if(!window.WeixinJSBridge)return;
-    console.log('[WX] OldBridge fallback');
-
-    WeixinJSBridge.on('menu:share:appmessage',function(){
-      var d=SHARE;
-      WeixinJSBridge.invoke('sendAppMessage',{
-        appid:'',title:d.title,desc:d.desc,link:d.link,
-        img_url:d.img,imgUrl:d.img,thumburl:d.img,
-        img_width:'300',img_height:'300',type:'link'
-      },function(){});
-    });
-
-    WeixinJSBridge.on('menu:share:timeline',function(){
-      var d=SHARE;
-      WeixinJSBridge.invoke('shareTimeline',{
-        title:d.title,desc:d.desc,link:d.link,
-        img_url:d.img,imgUrl:d.img,thumburl:d.img,
-        img_width:'300',img_height:'300',type:'link'
-      },function(){});
-    });
-  }
-  if(window.WeixinJSBridge){bind()}
-  else{document.addEventListener('WeixinJSBridgeReady',bind,false)}
 }
 
 // ========== Mode Switch ==========
-function go(mode,data){
+function go(mode, data){
   if(data){
-    App.cardData=data;
-    setWXShare(data.t,data.d||data.t,location.href,data.i||'');
+    App.cardData = data;
+    updateWX(data.t, data.d || data.t, location.href, data.i || '');
   }
-  B.setAttribute('data-theme',(data&&data.th)||'green');
-  B.setAttribute('data-mode',mode);
+  B.setAttribute('data-theme', (data && data.th) || 'green');
+  B.setAttribute('data-mode', mode);
 
-  if(mode==='editor'){show($('#p-editor'));location.hash='';renderEditor()}
-  else{show($('#p-viewer'));renderViewer()}
+  if(mode === 'editor'){ show($('#p-editor')); location.hash = ''; renderEditor(); }
+  else{ show($('#p-viewer')); renderViewer(); }
 }
 
 // ========== Editor ==========
 function renderEditor(){
-  updateUI();$('#share-overlay').classList.add('hidden');
-  var d=App.cardData||{t:'',d:'',i:'',th:'green'};
-  $('#tit').value=d.t||'';$('#desc').value=d.d||'';$('#img').value=d.i||'';
-  upCnt();pTheme(d.th||'green');preview();
+  updateUI(); $('#share-overlay').classList.add('hidden');
+  var d = App.cardData || { t:'', d:'', i:'', th:'green' };
+  $('#tit').value = d.t || ''; $('#desc').value = d.d || ''; $('#img').value = d.i || '';
+  upCnt(); pTheme(d.th || 'green'); preview();
 }
-function pTheme(th){$$('.dot').forEach(function(b){b.classList.toggle('on',b.dataset.t===th)});B.setAttribute('data-theme',th)}
-function upCnt(){$('#tn').textContent=$('#tit').value.length;$('#dn').textContent=$('#desc').value.length}
-function preview(){$('#pv-t').textContent=$('#tit').value.trim()||'卡片标题';$('#pv-d').textContent=$('#desc').value.trim()||'卡片描述...';setImg($('#pv-img'),$('#pv-ph'),$('#img').value.trim())}
+function pTheme(th){ $$('.dot').forEach(function(b){ b.classList.toggle('on', b.dataset.t === th) }); B.setAttribute('data-theme', th); }
+function upCnt(){ $('#tn').textContent = $('#tit').value.length; $('#dn').textContent = $('#desc').value.length; }
+function preview(){ $('#pv-t').textContent = $('#tit').value.trim() || '卡片标题'; $('#pv-d').textContent = $('#desc').value.trim() || '卡片描述...'; setImg($('#pv-img'), $('#pv-ph'), $('#img').value.trim()); }
 
-// 点击分享
-$('#form').addEventListener('submit',function(e){
+$('#form').addEventListener('submit', function(e){
   e.preventDefault();
-  var d={v:1,t:$('#tit').value.trim(),d:$('#desc').value.trim(),i:$('#img').value.trim(),th:B.getAttribute('data-theme')||'green'};
-  if(!d.t){toast('⚠️ 请输入卡片标题');$('#tit').focus();return}
-  App.cardData=d;
-  var hash=enc(d);
-  history.replaceState(null,'',location.origin+location.pathname+'#'+hash);
+  var d = { v:1, t:$('#tit').value.trim(), d:$('#desc').value.trim(), i:$('#img').value.trim(), th:B.getAttribute('data-theme')||'green' };
+  if(!d.t){ toast('⚠️ 请输入卡片标题'); $('#tit').focus(); return; }
+  App.cardData = d;
+  var hash = enc(d);
+  history.replaceState(null, '', location.origin + location.pathname + '#' + hash);
 
-  // ★ 更新 JSSDK 分享数据
-  setWXShare(d.t,d.d||d.t,location.href,d.i||'');
+  // ★ 更新分享数据（同时更新 JSBridge 全局对象 + JSSDK + OG 标签）
+  updateWX(d.t, d.d || d.t, location.href, d.i || '');
 
   if(isWX){
     $('#share-overlay').classList.remove('hidden');
-    $('#subtitle').textContent='点击右上角 ··· → 发送给朋友 / 朋友圈';
+    $('#subtitle').textContent = '点击右上角 ··· → 发送给朋友 / 朋友圈';
     toast('👆 点击右上角 ··· 分享');
   }else{
-    copyUrl(location.href).then(function(){toast('✅ 已复制！发微信打开后点右上角分享')}).catch(function(){toast('⚠️ 复制失败')});
-    $('#subtitle').textContent='链接已复制，发微信打开后点右上角分享';
+    copyUrl(location.href).then(function(){ toast('✅ 已复制！发微信打开后点右上角分享'); }).catch(function(){ toast('⚠️ 复制失败'); });
+    $('#subtitle').textContent = '链接已复制，发微信打开后点右上角分享';
   }
 });
 
 var _deb;
-$('#tit').addEventListener('input',function(){upCnt();clearTimeout(_deb);_deb=setTimeout(preview,200)});
-$('#desc').addEventListener('input',function(){upCnt();clearTimeout(_deb);_deb=setTimeout(preview,200)});
-$('#img').addEventListener('input',function(){clearTimeout(_deb);_deb=setTimeout(preview,200)});
-$('#dots').addEventListener('click',function(e){var b=e.target.closest('.dot');if(!b)return;pTheme(b.dataset.t);preview()});
-$('#share-overlay').addEventListener('click',function(){this.classList.add('hidden')});
-$('#btn-copy-link').addEventListener('click',function(){copyUrl(location.href).then(function(){toast('✅ 已复制')})});
+$('#tit').addEventListener('input', function(){ upCnt(); clearTimeout(_deb); _deb = setTimeout(preview, 200); });
+$('#desc').addEventListener('input', function(){ upCnt(); clearTimeout(_deb); _deb = setTimeout(preview, 200); });
+$('#img').addEventListener('input', function(){ clearTimeout(_deb); _deb = setTimeout(preview, 200); });
+$('#dots').addEventListener('click', function(e){ var b = e.target.closest('.dot'); if(!b) return; pTheme(b.dataset.t); preview(); });
+$('#share-overlay').addEventListener('click', function(){ this.classList.add('hidden'); });
+$('#btn-copy-link').addEventListener('click', function(){ copyUrl(location.href).then(function(){ toast('✅ 已复制'); }); });
 
 function copyUrl(url){
-  if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(url);
-  return new Promise(function(resolve,reject){
-    var ta=document.createElement('textarea');ta.value=url;ta.style.cssText='position:fixed;left:-9999px';
-    document.body.appendChild(ta);ta.select();
-    try{document.execCommand('copy');resolve()}catch(e){reject(e)}document.body.removeChild(ta);
+  if(navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(url);
+  return new Promise(function(resolve, reject){
+    var ta = document.createElement('textarea'); ta.value = url; ta.style.cssText = 'position:fixed;left:-9999px;';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); resolve(); } catch(e){ reject(e); }
+    document.body.removeChild(ta);
   });
 }
 
 // ========== Viewer ==========
 function renderViewer(){
-  var d=App.cardData;if(!d){go('editor');return}
-  $('#vw-t').textContent=d.t||'';$('#vw-d').textContent=d.d||'';
-  setImg($('#vw-img'),$('#vw-ph'),d.i||'');
-  App.geoDone=false;
-  $('#loc-res').classList.add('hidden');$('#loc-load').classList.add('hidden');
-  $('#tap-hint').classList.remove('hidden');$('#vw-ft').textContent='点击卡片 · 授权共享位置';
+  var d = App.cardData; if(!d){ go('editor'); return; }
+  $('#vw-t').textContent = d.t || ''; $('#vw-d').textContent = d.d || '';
+  setImg($('#vw-img'), $('#vw-ph'), d.i || '');
+  App.geoDone = false;
+  $('#loc-res').classList.add('hidden'); $('#loc-load').classList.add('hidden');
+  $('#tap-hint').classList.remove('hidden'); $('#vw-ft').textContent = '点击卡片 · 授权共享位置';
 }
 
-$('#card-view').addEventListener('click',function(){
-  if(App.geoDone)return;App.geoDone=true;
-  $('#tap-hint').classList.add('hidden');$('#vw-ft').textContent='获取位置中...';
-  $('#loc-load').classList.remove('hidden');$('#loc-res').classList.add('hidden');
+$('#card-view').addEventListener('click', function(){
+  if(App.geoDone) return; App.geoDone = true;
+  $('#tap-hint').classList.add('hidden'); $('#vw-ft').textContent = '获取位置中...';
+  $('#loc-load').classList.remove('hidden'); $('#loc-res').classList.add('hidden');
   loc().then(function(r){
-    $('#loc-load').classList.add('hidden');$('#vw-ft').textContent='位置已共享 ✓';
+    $('#loc-load').classList.add('hidden'); $('#vw-ft').textContent = '位置已共享 ✓';
     $('#loc-res').classList.remove('hidden');
-    $('#la').textContent=r.addr||r.lat+','+r.lon;
-    $('#lc').textContent=r.lat.toFixed(6)+', '+r.lon.toFixed(6)+(r.acc?' (±'+r.acc+'m)':'');
-    if(r.src==='gps'){$('#ls').textContent='📡 GPS · 高精度';$('#ls').style.cssText='background:#E8F5E9;color:#2E7D32'}
-    else{$('#ls').textContent='🌐 IP · 近似';$('#ls').style.cssText='background:#FFF3E0;color:#E65100'}
-    $('#lm').innerHTML='<img src="https://staticmap.openstreetmap.de/staticmap.php?center='+r.lat+','+r.lon+'&zoom=14&size=400x200&markers='+r.lat+','+r.lon+',red-pushpin" alt="地图" loading="lazy" onerror="this.innerHTML=\'<div style=padding:40px;text-align:center;color:#999>地图不可用</div>\'">';
+    $('#la').textContent = r.addr || r.lat + ',' + r.lon;
+    $('#lc').textContent = r.lat.toFixed(6) + ', ' + r.lon.toFixed(6) + (r.acc ? ' (±' + r.acc + 'm)' : '');
+    if(r.src === 'gps'){ $('#ls').textContent = '📡 GPS · 高精度'; $('#ls').style.cssText = 'background:#E8F5E9;color:#2E7D32'; }
+    else{ $('#ls').textContent = '🌐 IP · 近似'; $('#ls').style.cssText = 'background:#FFF3E0;color:#E65100'; }
+    $('#lm').innerHTML = '<img src="https://staticmap.openstreetmap.de/staticmap.php?center=' + r.lat + ',' + r.lon + '&zoom=14&size=400x200&markers=' + r.lat + ',' + r.lon + ',red-pushpin" alt="地图" loading="lazy" onerror="this.innerHTML=\'<div style=padding:40px;text-align:center;color:#999>地图不可用</div>\'">';
   }).catch(function(err){
-    $('#loc-load').classList.add('hidden');$('#vw-ft').textContent='点击卡片 · 授权共享位置';
-    $('#tap-hint').classList.remove('hidden');toast('❌ '+(err.message||'失败'));App.geoDone=false;
+    $('#loc-load').classList.add('hidden'); $('#vw-ft').textContent = '点击卡片 · 授权共享位置';
+    $('#tap-hint').classList.remove('hidden'); toast('❌ ' + (err.message || '失败')); App.geoDone = false;
   });
 });
 
 // ========== Location ==========
-function loc(){return gps().catch(ipCo).catch(ipCom)}
-
+function loc(){ return gps().catch(ipCo).catch(ipCom); }
 function gps(){
-  return new Promise(function(resolve,reject){
-    if(!navigator.geolocation)return reject(new Error('浏览器不支持GPS'));
-    var t=setTimeout(function(){reject(new Error('GPS超时'))},10000);
-    navigator.geolocation.getCurrentPosition(function(pos){clearTimeout(t);
-      var lat=pos.coords.latitude,lon=pos.coords.longitude,acc=pos.coords.accuracy;
-      rgeo(lat,lon).then(function(a){resolve({lat:lat,lon:lon,addr:a,src:'gps',acc:Math.round(acc)})});
-    },function(){clearTimeout(t);reject(new Error('GPS未授权'))},{enableHighAccuracy:false,timeout:10000,maximumAge:60000});
+  return new Promise(function(resolve, reject){
+    if(!navigator.geolocation) return reject(new Error('浏览器不支持GPS'));
+    var t = setTimeout(function(){ reject(new Error('GPS超时')); }, 10000);
+    navigator.geolocation.getCurrentPosition(function(pos){ clearTimeout(t);
+      var lat = pos.coords.latitude, lon = pos.coords.longitude, acc = pos.coords.accuracy;
+      rgeo(lat, lon).then(function(a){ resolve({ lat: lat, lon: lon, addr: a, src: 'gps', acc: Math.round(acc) }); });
+    }, function(){ clearTimeout(t); reject(new Error('GPS未授权')); }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 });
   });
 }
 function ipCo(){
-  var c=new AbortController(),t=setTimeout(function(){c.abort()},5000);
-  return fetch('https://ipapi.co/json/',{signal:c.signal}).then(function(r){clearTimeout(t);if(!r.ok)throw new Error('fail');return r.json()}).then(function(d){
-    if(d.error)throw new Error(d.reason);
-    return{lat:d.latitude,lon:d.longitude,addr:[d.city,d.region,d.country_name].filter(Boolean).join(', ')||d.latitude+','+d.longitude,src:'ip',acc:null};
-  }).catch(function(e){clearTimeout(t);throw e});
+  var c = new AbortController(), t = setTimeout(function(){ c.abort(); }, 5000);
+  return fetch('https://ipapi.co/json/', { signal: c.signal }).then(function(r){ clearTimeout(t); if(!r.ok) throw new Error('fail'); return r.json(); }).then(function(d){
+    if(d.error) throw new Error(d.reason);
+    return { lat: d.latitude, lon: d.longitude, addr: [d.city, d.region, d.country_name].filter(Boolean).join(', ') || d.latitude + ',' + d.longitude, src: 'ip', acc: null };
+  }).catch(function(e){ clearTimeout(t); throw e; });
 }
 function ipCom(){
-  return new Promise(function(resolve,reject){
-    var cb='_ip_'+Date.now(),t=setTimeout(function(){delete window[cb];reject(new Error('IP超时'))},8000);
-    window[cb]=function(d){clearTimeout(t);delete window[cb];
-      if(d&&d.lat!==undefined){resolve({lat:d.lat,lon:d.lon,addr:[d.city,d.regionName,d.country].filter(Boolean).join(', ')||d.lat+','+d.lon,src:'ip',acc:null})}
-      else reject(new Error('无数据'));};
-    var s=document.createElement('script');s.src='http://ip-api.com/json/?callback='+cb+'&fields=lat,lon,city,regionName,country';
-    s.onerror=function(){clearTimeout(t);delete window[cb];reject(new Error('IP服务不可用'))};document.head.appendChild(s);
+  return new Promise(function(resolve, reject){
+    var cb = '_ip_' + Date.now(), t = setTimeout(function(){ delete window[cb]; reject(new Error('IP超时')); }, 8000);
+    window[cb] = function(d){ clearTimeout(t); delete window[cb];
+      if(d && d.lat !== undefined){ resolve({ lat: d.lat, lon: d.lon, addr: [d.city, d.regionName, d.country].filter(Boolean).join(', ') || d.lat + ',' + d.lon, src: 'ip', acc: null }); }
+      else reject(new Error('无数据')); };
+    var s = document.createElement('script'); s.src = 'http://ip-api.com/json/?callback=' + cb + '&fields=lat,lon,city,regionName,country';
+    s.onerror = function(){ clearTimeout(t); delete window[cb]; reject(new Error('IP服务不可用')); }; document.head.appendChild(s);
   });
 }
-var _gc={},_lg=0;
-function rgeo(lat,lon){
-  var k=lat.toFixed(3)+','+lon.toFixed(3);if(_gc[k])return Promise.resolve(_gc[k]);
-  var w=Math.max(0,1100-(Date.now()-_lg));_lg=Date.now()+w;
-  var p=w?new Promise(function(r){setTimeout(r,w)}):Promise.resolve();
-  return p.then(function(){return fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+lat+'&lon='+lon+'&zoom=18&addressdetails=1&accept-language='+(navigator.language||'zh-CN'),{headers:{'User-Agent':'Card/1.0'}})}).then(function(r){if(!r.ok)throw new Error('fail');return r.json()}).then(function(d){_gc[k]=d.display_name||lat.toFixed(4)+', '+lon.toFixed(4);return _gc[k]}).catch(function(){return lat.toFixed(4)+', '+lon.toFixed(4)});
+var _gc = {}, _lg = 0;
+function rgeo(lat, lon){
+  var k = lat.toFixed(3) + ',' + lon.toFixed(3); if(_gc[k]) return Promise.resolve(_gc[k]);
+  var w = Math.max(0, 1100 - (Date.now() - _lg)); _lg = Date.now() + w;
+  var p = w ? new Promise(function(r){ setTimeout(r, w); }) : Promise.resolve();
+  return p.then(function(){ return fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon + '&zoom=18&addressdetails=1&accept-language=' + (navigator.language || 'zh-CN'), { headers: { 'User-Agent': 'Card/1.0' } }); }).then(function(r){ if(!r.ok) throw new Error('fail'); return r.json(); }).then(function(d){ _gc[k] = d.display_name || lat.toFixed(4) + ', ' + lon.toFixed(4); return _gc[k]; }).catch(function(){ return lat.toFixed(4) + ', ' + lon.toFixed(4); });
 }
 
 // ========== Boot ==========
-$('#btn-make').addEventListener('click',function(){App.cardData=null;go('editor')});
-window.addEventListener('hashchange',function(){var d=dec(location.hash.slice(1));go(d?'viewer':'editor',d||undefined)});
+$('#btn-make').addEventListener('click', function(){ App.cardData = null; go('editor'); });
+window.addEventListener('hashchange', function(){ var d = dec(location.hash.slice(1)); go(d ? 'viewer' : 'editor', d || undefined); });
+
 function boot(){
   updateUI();
-  var d=dec(location.hash.slice(1));
-  // ★ 先初始化 JSSDK 签名
-  initWXConfig();
-  // 同时绑老桥兜底
-  initOldBridge();
-  go(d?'viewer':'editor',d||undefined);
+  // 尝试 JSSDK 初始化（签名接口不可用时会静默失败，走 JSBridge 兜底）
+  initJSSDK();
+  var d = dec(location.hash.slice(1));
+  go(d ? 'viewer' : 'editor', d || undefined);
 }
-document.addEventListener('DOMContentLoaded',boot);
+document.addEventListener('DOMContentLoaded', boot);
+
 })();
 </script>
 </body>
