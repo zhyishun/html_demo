@@ -6,7 +6,7 @@
 <title>小卡片分享</title>
 <meta property="og:title" content="小卡片分享" id="og-title">
 <meta property="og:description" content="有人给你分享了一张卡片" id="og-desc">
-<meta property="og:image" content="demo.jpg" id="og-image">
+<script>document.write('<meta property="og:image" content="'+location.origin+'/demo.jpg" id="og-image">');</script>
 <meta property="og:url" content="" id="og-url">
 <meta property="og:type" content="website">
 
@@ -25,7 +25,9 @@
       document.title = d.t;
       document.getElementById('og-title').setAttribute('content', d.t);
       document.getElementById('og-desc').setAttribute('content', d.d||d.t);
-      document.getElementById('og-image').setAttribute('content', d.i||'demo.jpg');
+      var imgUrl = d.i || (location.origin + '/demo.jpg');
+      if(imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
+      document.getElementById('og-image').setAttribute('content', imgUrl);
       document.getElementById('og-url').setAttribute('content', location.href);
     }
   }catch(e){}
@@ -180,7 +182,7 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
 // ================================================================
 // ★ 第一时间绑定 WeixinJSBridge（放最前面，不走 DOMContentLoaded）
 // ================================================================
-var _s = { title:'小卡片分享', desc:'', link:location.href, img:'' };
+var _s = { title:'小卡片分享', desc:'', link:location.href, img:location.origin+'/demo.jpg' };
 
 (function bindWX(){
   function b(){
@@ -244,17 +246,23 @@ function updateOG(title, desc, img){
   document.title = title || document.title;
   $('#og-title').setAttribute('content', title || '');
   $('#og-desc').setAttribute('content', desc || '');
-  $('#og-image').setAttribute('content', img || '');
+  // 确保 og:image 为绝对 URL（微信朋友圈爬虫要求）
+  if(img && img.indexOf('//') === -1) img = location.origin + '/' + img.replace(/^\//,'');
+  if(!img) img = location.origin + '/demo.jpg';
+  $('#og-image').setAttribute('content', img);
   $('#og-url').setAttribute('content', location.href);
 }
 
 // ========== 更新微信分享数据 ==========
 function updateWX(title, desc, link, imgUrl){
+  // 确保图片 URL 为绝对路径（微信朋友圈要求绝对 URL）
+  if(imgUrl && imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
+  if(!imgUrl) imgUrl = location.origin + '/demo.jpg';
   // 更新全局对象（JSBridge 回调引用此对象）
   _s.title = title;
   _s.desc = desc;
   _s.link = link;
-  _s.img = imgUrl || '';
+  _s.img = imgUrl;
   updateOG(title, desc, _s.img);
 
   // 如果 JSSDK 已就绪，同时用 JSSDK 更新
