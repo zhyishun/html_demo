@@ -99,6 +99,33 @@ body[data-theme="red"]    { --theme-color: #EE0A24; --theme-color-dark: #D40820;
 .form-group textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
 .form-group .char-count { text-align: right; font-size: 12px; color: var(--text-hint); margin-top: 4px; }
 
+/* Image upload row */
+.image-input-row { display: flex; gap: 8px; align-items: center; }
+.image-input-row input[type="text"] { flex: 1; }
+.btn-upload {
+  display: flex; align-items: center; justify-content: center;
+  width: 42px; height: 42px; flex-shrink: 0;
+  background: var(--wechat-card-bg); border: 1px solid var(--border-color);
+  border-radius: var(--radius-btn); font-size: 20px; cursor: pointer;
+  transition: border-color 0.2s;
+}
+.btn-upload:hover { border-color: var(--theme-color); }
+
+#image-preview-mini {
+  margin-top: 8px; position: relative; display: inline-block;
+}
+#image-preview-mini img {
+  width: 80px; height: 60px; object-fit: cover; border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+.btn-clear-img {
+  position: absolute; top: -8px; right: -8px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #333; color: #fff; border: none; font-size: 11px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  line-height: 1; padding: 0;
+}
+
 /* ===== Theme Picker ===== */
 .theme-picker { display: flex; gap: 10px; }
 .theme-btn {
@@ -284,8 +311,16 @@ body[data-theme="red"]    { --theme-color: #EE0A24; --theme-color-dark: #D40820;
             <div class="char-count"><span id="desc-count">0</span>/200</div>
           </div>
           <div class="form-group">
-            <label for="inp-image">封面图片URL（可选）</label>
-            <input type="text" id="inp-image" placeholder="https://example.com/image.jpg">
+            <label for="inp-image">封面图片（可选）</label>
+            <div class="image-input-row">
+              <input type="text" id="inp-image" placeholder="粘贴图片URL，或点击右侧上传">
+              <label class="btn-upload" for="file-upload" title="上传本地图片">📷</label>
+              <input type="file" id="file-upload" accept="image/*" style="display:none;">
+            </div>
+            <div id="image-preview-mini" class="hidden">
+              <img id="image-preview-mini-img" src="" alt="">
+              <button type="button" id="btn-clear-image" class="btn-clear-img">✕</button>
+            </div>
           </div>
           <div class="form-group">
             <label>主题颜色</label>
@@ -484,6 +519,7 @@ function renderEditor() {
   $('#inp-title').value = d.t || '';
   $('#inp-desc').value = d.d || '';
   $('#inp-image').value = d.i || '';
+  if (d.i) { showImageMiniPreview(d.i); } else { $('#image-preview-mini').classList.add('hidden'); }
   updateCharCounts();
   updateThemePicker(d.th || 'green');
   updatePreview();
@@ -499,20 +535,35 @@ function updateCharCounts() {
   $('#desc-count').textContent = $('#inp-desc').value.length;
 }
 
+function setImageVisible(img, ph, src) {
+  // Always set handlers BEFORE src to avoid race with cached images
+  if (!src) {
+    img.classList.add('hidden');
+    ph.classList.remove('hidden');
+    img.removeAttribute('src');
+    return;
+  }
+  let handled = false;
+  function onDone(ok) {
+    if (handled) return;
+    handled = true;
+    if (ok) { img.classList.remove('hidden'); ph.classList.add('hidden'); }
+    else    { img.classList.add('hidden'); ph.classList.remove('hidden'); }
+  }
+  img.onload  = () => onDone(true);
+  img.onerror = () => onDone(false);
+  img.src = src;
+  // If image was cached, onload may never fire again — check .complete
+  if (img.complete) {
+    // small delay so the handler above can fire first for non-cached case
+    setTimeout(() => { if (img.naturalWidth > 0) onDone(true); else onDone(false); }, 0);
+  }
+}
+
 function updatePreview() {
   $('#preview-title').textContent = $('#inp-title').value.trim() || '卡片标题';
   $('#preview-desc').textContent = $('#inp-desc').value.trim() || '卡片描述会显示在这里...';
-  const imgUrl = $('#inp-image').value.trim();
-  const img = $('#preview-image');
-  const ph = $('#preview-placeholder');
-  if (imgUrl) {
-    img.src = imgUrl;
-    img.onload = () => { img.classList.remove('hidden'); ph.classList.add('hidden'); };
-    img.onerror = () => { img.classList.add('hidden'); ph.classList.remove('hidden'); };
-  } else {
-    img.classList.add('hidden');
-    ph.classList.remove('hidden');
-  }
+  setImageVisible($('#preview-image'), $('#preview-placeholder'), $('#inp-image').value.trim());
 }
 
 // ---- Editor Events ----
@@ -543,6 +594,56 @@ $('#theme-picker').addEventListener('click', function(e) {
   if (!btn) return;
   updateThemePicker(btn.dataset.theme);
   updatePreview();
+});
+
+// ---- Image file upload ----
+$('#file-upload').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  // Resize and convert to data URL (max 400px wide, JPEG quality 0.7 for manageable size)
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const maxW = 400;
+      let w = img.width, h = img.height;
+      if (w > maxW) { h = h * (maxW / w); w = maxW; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      $('#inp-image').value = dataUrl;
+      showImageMiniPreview(dataUrl);
+      updatePreview();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+function showImageMiniPreview(dataUrl) {
+  const box = $('#image-preview-mini');
+  box.classList.remove('hidden');
+  $('#image-preview-mini-img').src = dataUrl;
+}
+
+$('#btn-clear-image').addEventListener('click', function() {
+  $('#inp-image').value = '';
+  $('#file-upload').value = '';
+  $('#image-preview-mini').classList.add('hidden');
+  updatePreview();
+});
+
+// Also show mini preview when user types/pastes a URL
+$('#inp-image').addEventListener('blur', function() {
+  const val = this.value.trim();
+  if (val && val.startsWith('data:')) {
+    showImageMiniPreview(val);
+  } else if (val && (val.startsWith('http://') || val.startsWith('https://'))) {
+    showImageMiniPreview(val);
+  } else if (!val) {
+    $('#image-preview-mini').classList.add('hidden');
+  }
 });
 
 // ==================== Share Panel ====================
@@ -615,16 +716,7 @@ function renderViewer() {
   if (!d) { switchMode('editor'); return; }
   $('#viewer-title').textContent = d.t || '';
   $('#viewer-desc').textContent = d.d || '';
-  const img = $('#viewer-image');
-  const ph = $('#viewer-placeholder');
-  if (d.i) {
-    img.src = d.i;
-    img.onload = () => { img.classList.remove('hidden'); ph.classList.add('hidden'); };
-    img.onerror = () => { img.classList.add('hidden'); ph.classList.remove('hidden'); };
-  } else {
-    img.classList.add('hidden');
-    ph.classList.remove('hidden');
-  }
+  setImageVisible($('#viewer-image'), $('#viewer-placeholder'), d.i || '');
   // Reset location
   $('#location-result').classList.add('hidden');
   const btn = $('#btn-share-location');
