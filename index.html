@@ -11,7 +11,7 @@
 <meta property="og:url" content="https://fengxiang.zhyishun.top/detail.html" id="og-url">
 <meta property="og:type" content="website">
 
-<!-- ★ 全局分享数据（最早定义，同步脚本会更新它） -->
+<!-- ★ 全局分享数据 -->
 <script>
 window._SD = {
   title: '小卡片分享',
@@ -19,9 +19,10 @@ window._SD = {
   link:  'https://fengxiang.zhyishun.top/detail.html',
   imgUrl:'https://fengxiang.zhyishun.top/demo.jpg'
 };
+console.log('[SD-init] 默认 _SD =', JSON.stringify(window._SD));
 </script>
 
-<!-- ★ 同步脚本：解析 hash，同时更新 OG 标签和 _SD -->
+<!-- ★ 同步脚本：解析 hash，更新 _SD + OG 标签 -->
 <script>
 (function(){
   try{
@@ -29,11 +30,14 @@ window._SD = {
     var FIXED_LINK = 'https://fengxiang.zhyishun.top/detail.html';
 
     var h = location.hash.slice(1);
+    console.log('[SD-sync] hash raw =', h);
+
     if(!h){
       document.getElementById('og-title').setAttribute('content', '小卡片分享');
       document.getElementById('og-desc').setAttribute('content', '有人给你分享了一张卡片');
       document.getElementById('og-image').setAttribute('content', BASE + '/demo.jpg');
       document.getElementById('og-url').setAttribute('content', FIXED_LINK);
+      console.log('[SD-sync] 无 hash，使用默认值');
       return;
     }
     h = h.replace(/-/g,'+').replace(/_/g,'/');
@@ -41,6 +45,8 @@ window._SD = {
     var bin = atob(h), bytes = new Uint8Array(bin.length);
     for(var i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
     var d = JSON.parse(new TextDecoder().decode(bytes));
+    console.log('[SD-sync] 解析结果 =', JSON.stringify(d));
+
     if(d.v===1 && d.t){
       document.title = d.t;
       document.getElementById('og-title').setAttribute('content', d.t);
@@ -50,13 +56,17 @@ window._SD = {
       document.getElementById('og-image').setAttribute('content', imgUrl);
       document.getElementById('og-url').setAttribute('content', FIXED_LINK);
 
-      // ★ 同步更新 _SD（JSSDK 在 wx.ready 中读这个）
       window._SD.title  = d.t;
       window._SD.desc   = d.d || d.t;
       window._SD.link   = FIXED_LINK;
       window._SD.imgUrl = imgUrl;
+      console.log('[SD-sync] _SD 已更新 =', JSON.stringify(window._SD));
+    } else {
+      console.log('[SD-sync] 数据校验失败 v=' + d.v + ' t=' + d.t);
     }
-  }catch(e){}
+  }catch(e){
+    console.error('[SD-sync] 异常:', e);
+  }
 })();
 </script>
 <style>
@@ -235,14 +245,17 @@ function initJSSDK(){
   if(!isWX) return;
 
   var pageUrl = location.href.split('#')[0];
-  fetch('/api/sign?url=' + encodeURIComponent(pageUrl))
+  var signUrl = '/api/sign?url=' + encodeURIComponent(pageUrl);
+  console.log('[WX] 请求签名:', signUrl);
+  fetch(signUrl)
     .then(function(res){ return res.json(); })
     .then(function(data){
       var p = data.signPackage || data;
       if(!p.signature){ console.log('[WX] 签名获取失败:', JSON.stringify(data)); return; }
 
+      console.log('[WX] 签名成功 appId=' + p.appId + ' 配置中...');
       wx.config({
-        debug: false,
+        debug: true,
         appId: p.appId,
         timestamp: parseInt(p.timestamp),
         nonceStr: p.nonceStr,
@@ -323,9 +336,10 @@ $('#form').addEventListener('submit', function(e){
   var hash = enc(d);
 
   if(isWX){
-    // ★ 直接跳转到带 hash 的 URL，让页面重新加载
-    // 页面重新加载后，同步脚本解析 hash 更新 _SD，JSSDK wx.ready 读到正确数据
-    location.href = location.origin + location.pathname + '#' + hash;
+    // ★ 用硬编码 URL 跳转（避免 location.origin 兼容问题），确保页面完整重载
+    var newUrl = 'https://fengxiang.zhyishun.top/#' + hash;
+    console.log('[FORM] redirect to:', newUrl);
+    window.location.replace(newUrl);
   }else{
     // PC 端：复制链接
     var url = location.origin + location.pathname + '#' + hash;
@@ -376,10 +390,11 @@ $('#btn-make').addEventListener('click', function(){ App.cardData = null; go('ed
 window.addEventListener('hashchange', function(){ var d = dec(location.hash.slice(1)); go(d ? 'viewer' : 'editor', d || undefined); });
 
 function boot(){
+  console.log('[BOOT] 启动, hash=' + location.hash + ' _SD.title=' + window._SD.title);
   updateUI();
-  // 尝试 JSSDK 初始化（签名接口不可用时会静默失败，走 JSBridge 兜底）
   initJSSDK();
   var d = dec(location.hash.slice(1));
+  console.log('[BOOT] dec result =', d ? JSON.stringify(d) : 'null');
   go(d ? 'viewer' : 'editor', d || undefined);
 }
 document.addEventListener('DOMContentLoaded', boot);
