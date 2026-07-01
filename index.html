@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>小卡片分享</title>
+<!-- OG 标签：微信爬虫抓取时使用，JS 会根据 hash 动态更新 -->
+<meta property="og:title" content="小卡片分享" id="og-title">
+<meta property="og:description" content="有人给你分享了一张卡片，点开看看" id="og-desc">
+<meta property="og:image" content="" id="og-image">
+<meta property="og:url" content="" id="og-url">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="小卡片分享">
 <style>
 :root {
   --green: #07C160; --green-d: #06AD56; --link: #576B95; --bg: #EDEDED;
@@ -314,37 +321,69 @@ function updateEnvUI(){
   }
 }
 
+// ==================== OG 标签更新 ====================
+// 微信爬虫抓取页面时会读取 OG 标签来生成小卡片
+function updateOG(title, desc, imgUrl){
+  var fullUrl = location.href;
+  document.title = title || document.title;
+  var ot = document.getElementById('og-title'); if(ot) ot.setAttribute('content', title || '');
+  var od = document.getElementById('og-desc'); if(od) od.setAttribute('content', desc || '');
+  var oi = document.getElementById('og-image'); if(oi) oi.setAttribute('content', imgUrl || '');
+  var ou = document.getElementById('og-url'); if(ou) ou.setAttribute('content', fullUrl);
+  console.log('[OG] updated:', title, imgUrl ? '(with image)' : '(no image)');
+}
+
 // ==================== WeChat 分享设置 ====================
 function setupWXShare(data){
-  var sd = {
+  var imgUrl = data.i || '';
+  var shareData = {
     title: data.t,
     desc: data.d || data.t,
     link: location.href,
-    img_url: data.i || '',
-    imgUrl: data.i || '',
+    img_url: imgUrl,
+    imgUrl: imgUrl,           // 兼容不同版本字段名
+    img_width: '300',         // 朋友圈需要尺寸
+    img_height: '300',
+    type: 'link',             // 分享类型：link
+    dataUrl: '',              // 部分旧版本需要
   };
 
+  // ★ 同步更新 OG 标签 → 微信爬虫抓取时也能显示
+  updateOG(shareData.title, shareData.desc, imgUrl);
+
   function bind(){
-    if(!window.WeixinJSBridge) return;
+    if(!window.WeixinJSBridge) {
+      console.log('[WXShare] WeixinJSBridge not available');
+      return;
+    }
+    console.log('[WXShare] binding with:', JSON.stringify({title:shareData.title,desc:shareData.desc,img:imgUrl}));
+
     // 发送给朋友
     WeixinJSBridge.on('menu:share:appmessage', function(){
       WeixinJSBridge.invoke('sendAppMessage', {
-        title: sd.title, desc: sd.desc, link: sd.link, img_url: sd.img_url
-      }, function(){});
+        appid: '',
+        img_url: shareData.img_url,
+        img_width: shareData.img_width,
+        img_height: shareData.img_height,
+        link: shareData.link,
+        desc: shareData.desc,
+        title: shareData.title,
+        type: shareData.type
+      }, function(res){ console.log('[WXShare] sendAppMessage result:', res); });
     });
+
     // 分享到朋友圈
     WeixinJSBridge.on('menu:share:timeline', function(){
       WeixinJSBridge.invoke('shareTimeline', {
-        title: sd.title, desc: sd.desc, link: sd.link, img_url: sd.img_url
-      }, function(){});
+        img_url: shareData.img_url,
+        img_width: shareData.img_width,
+        img_height: shareData.img_height,
+        link: shareData.link,
+        desc: shareData.desc,
+        title: shareData.title,
+        type: shareData.type
+      }, function(res){ console.log('[WXShare] shareTimeline result:', res); });
     });
-    // 分享到QQ
-    WeixinJSBridge.on('menu:share:qq', function(){
-      WeixinJSBridge.invoke('shareQQ', {
-        title: sd.title, desc: sd.desc, link: sd.link, img_url: sd.img_url
-      }, function(){});
-    });
-    console.log('[WXShare] 分享数据已绑定:', sd.title);
   }
 
   if(window.WeixinJSBridge){
@@ -356,7 +395,13 @@ function setupWXShare(data){
 
 // ==================== Mode Switching ====================
 function go(mode,data){
-  if(data)App.cardData=data;
+  if(data){
+    App.cardData=data;
+    // ★ 任何时候有卡片数据，立即更新 OG 标签供微信爬虫读取
+    updateOG(data.t, data.d || data.t, data.i || '');
+    // 如果微信环境，也设置 JSBridge
+    if(inWX() || isWX) setupWXShare(data);
+  }
   var th=(data&&data.th)||'green';
   B.setAttribute('data-theme',th);B.setAttribute('data-mode',mode);
 
@@ -519,7 +564,6 @@ function boot(){
   var data=dec(location.hash.slice(1));
   if(data){
     go('viewer',data);
-    if(isWX) setupWXShare(data);
   }else{
     go('editor');
   }
