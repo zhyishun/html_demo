@@ -238,14 +238,39 @@ function updateShareData(title, desc, link, imgUrl){
 
   // JSSDK 方式更新分享数据
   if(window.wx){
-    var cfg = { title: title, desc: desc, link: link, imgUrl: imgUrl, type: 'link', dataUrl: '' };
-    wx.updateAppMessageShareData(cfg);
-    wx.updateTimelineShareData(cfg);
+    // 分享给朋友：需要 title, desc, link, imgUrl, type
+    wx.updateAppMessageShareData({
+      title: title,
+      desc: desc,
+      link: link,
+      imgUrl: imgUrl,
+      type: 'link',
+      dataUrl: ''
+    });
+    wx.onMenuShareAppMessage({
+      title: title,
+      desc: desc,
+      link: link,
+      imgUrl: imgUrl,
+      type: 'link',
+      dataUrl: ''
+    });
+
+    // 分享到朋友圈：只需要 title, link, imgUrl（不支持 desc/type/dataUrl）
+    wx.updateTimelineShareData({
+      title: title,
+      link: link,
+      imgUrl: imgUrl
+    });
+    wx.onMenuShareTimeline({
+      title: title,
+      link: link,
+      imgUrl: imgUrl
+    });
   }
 }
 
 // ========== JSSDK 初始化 ==========
-// 参考微信官方文档：从后端获取签名 → wx.config → wx.ready → 设置分享数据
 function initJSSDK(){
   if(!isWX) return;
 
@@ -264,33 +289,49 @@ function initJSSDK(){
         signature: p.signature,
         jsApiList: [
           'updateAppMessageShareData',
-          'updateTimelineShareData'
+          'updateTimelineShareData',
+          'onMenuShareAppMessage',
+          'onMenuShareTimeline',
+          'showOptionMenu'
         ]
       });
 
       wx.ready(function(){
+        wx.showOptionMenu();
+
         var title = App.cardData ? App.cardData.t : '小卡片分享';
         var desc = App.cardData ? (App.cardData.d || App.cardData.t) : '';
         var imgUrl = (App.cardData && App.cardData.i) ? App.cardData.i : 'https://fengxiang.zhyishun.top/demo.jpg';
         if(imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
 
+        // 分享给朋友
         wx.updateAppMessageShareData({
           title: title,
           desc: desc,
           link: location.href,
           imgUrl: imgUrl,
           type: 'link',
-          dataUrl: '',
-          success: function(){ console.log('[WX] 分享朋友配置成功'); }
+          dataUrl: ''
         });
-
-        wx.updateTimelineShareData({
+        wx.onMenuShareAppMessage({
           title: title,
+          desc: desc,
           link: location.href,
           imgUrl: imgUrl,
           type: 'link',
-          dataUrl: '',
-          success: function(){ console.log('[WX] 朋友圈配置成功'); }
+          dataUrl: ''
+        });
+
+        // 分享到朋友圈（注意：只有 title, link, imgUrl 三个参数）
+        wx.updateTimelineShareData({
+          title: title,
+          link: location.href,
+          imgUrl: imgUrl
+        });
+        wx.onMenuShareTimeline({
+          title: title,
+          link: location.href,
+          imgUrl: imgUrl
         });
 
         console.log('[WX] JSSDK ready, imgUrl=' + imgUrl);
