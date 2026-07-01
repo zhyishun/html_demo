@@ -15,11 +15,16 @@
 (function(){
   try{
     var BASE = 'https://fengxiang.zhyishun.top';
-    document.getElementById('og-image').setAttribute('content', BASE + '/demo.jpg');
-    document.getElementById('og-url').setAttribute('content', BASE + '/');
 
     var h = location.hash.slice(1);
-    if(!h) return;
+    if(!h){
+      // 无 hash：确保默认 OG 标签为绝对 URL
+      document.getElementById('og-title').setAttribute('content', '小卡片分享');
+      document.getElementById('og-desc').setAttribute('content', '有人给你分享了一张卡片');
+      document.getElementById('og-image').setAttribute('content', BASE + '/demo.jpg');
+      document.getElementById('og-url').setAttribute('content', location.href);
+      return;
+    }
     h = h.replace(/-/g,'+').replace(/_/g,'/');
     while(h.length%4) h += '=';
     var bin = atob(h), bytes = new Uint8Array(bin.length);
@@ -160,7 +165,7 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
   <!-- VIEWER -->
   <div class="panel" id="p-viewer">
     <p style="text-align:center;font-size:13px;color:var(--t3);margin-bottom:8px">📨 有人给你分享了一张卡片</p>
-    <div class="card clickable" id="card-view" onclick="location.href='detail.html'+location.hash"></div>
+    <div class="card clickable" id="card-view" onclick="location.href='https://fengxiang.zhyishun.top/detail.html'+location.hash">
       <div class="card-img"><img id="vw-img" src="" alt="" class="hidden"><div class="card-ph" id="vw-ph">🖼️</div></div>
       <div class="card-bd"><div class="ct" id="vw-t"></div><div class="cd" id="vw-d"></div></div>
       <div class="card-ft"><span class="cf-t" id="vw-ft">点击卡片 · 查看详情并共享位置</span><span class="cf-a">›</span></div>
@@ -177,30 +182,32 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
 
 <!-- ★★★ WeixinJSBridge 兜底（不依赖 JSSDK 签名，微信内一定可用） ★★★ -->
 <script>
-var _shareData = {
-  title: '小卡片分享',
-  desc: '',
-  link: 'https://fengxiang.zhyishun.top/',
-  imgUrl: 'https://fengxiang.zhyishun.top/demo.jpg'
-};
-
 (function bindBridge(){
   function ready(){
     if(!window.WeixinJSBridge) return;
-    // 分享给朋友
+
+    // 分享给朋友 — 回调里实时读 DOM，确保读到最新值
     window.WeixinJSBridge.on('menu:share:appmessage', function(){
-      var d = _shareData;
+      var title = document.getElementById('og-title').getAttribute('content') || document.title || '小卡片分享';
+      var desc  = document.getElementById('og-desc').getAttribute('content') || '';
+      var link  = document.getElementById('og-url').getAttribute('content') || location.href;
+      var img   = document.getElementById('og-image').getAttribute('content') || '';
+      document.title = title;
       window.WeixinJSBridge.invoke('sendAppMessage', {
-        title: d.title, desc: d.desc, link: d.link,
-        img_url: d.imgUrl, img_width: '300', img_height: '300'
+        title: title, desc: desc, link: link,
+        img_url: img, img_width: '300', img_height: '300'
       }, function(){});
     });
-    // 分享到朋友圈
+
+    // 分享到朋友圈 — 回调里实时读 DOM
     window.WeixinJSBridge.on('menu:share:timeline', function(){
-      var d = _shareData;
+      var title = document.getElementById('og-title').getAttribute('content') || document.title || '小卡片分享';
+      var link  = document.getElementById('og-url').getAttribute('content') || location.href;
+      var img   = document.getElementById('og-image').getAttribute('content') || '';
+      document.title = title;
       window.WeixinJSBridge.invoke('shareTimeline', {
-        title: d.title, link: d.link,
-        img_url: d.imgUrl, img_width: '300', img_height: '300'
+        title: title, link: link,
+        img_url: img, img_width: '300', img_height: '300'
       }, function(){});
     });
   }
@@ -260,13 +267,7 @@ function updateShareData(title, desc, link, imgUrl){
   if(imgUrl && imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
   if(!imgUrl) imgUrl = 'https://fengxiang.zhyishun.top/demo.jpg';
 
-  // ★ 更新 WeixinJSBridge 全局数据（优先级最高，不依赖签名）
-  _shareData.title = title;
-  _shareData.desc = desc;
-  _shareData.link = link;
-  _shareData.imgUrl = imgUrl;
-
-  // 更新 OG 标签
+  // 更新 OG 标签（WeixinJSBridge 回调直接读 OG 标签，所以更新 OG 即可）
   updateOG(title, desc, imgUrl);
 
   // JSSDK 更新分享数据
