@@ -6,7 +6,7 @@
 <title>小卡片分享</title>
 <meta property="og:title" content="小卡片分享" id="og-title">
 <meta property="og:description" content="有人给你分享了一张卡片" id="og-desc">
-<script>document.write('<meta property="og:image" content="'+location.origin+'/demo.jpg" id="og-image">');</script>
+<meta property="og:image" content="" id="og-image">
 <meta property="og:url" content="" id="og-url">
 <meta property="og:type" content="website">
 
@@ -14,6 +14,10 @@
 <script>
 (function(){
   try{
+    // 始终设置 og:image 为绝对 URL（微信朋友圈要求绝对路径）
+    document.getElementById('og-image').setAttribute('content', location.origin + '/demo.jpg');
+    document.getElementById('og-url').setAttribute('content', location.href);
+
     var h = location.hash.slice(1);
     if(!h) return;
     h = h.replace(/-/g,'+').replace(/_/g,'/');
