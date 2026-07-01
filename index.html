@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>小卡片分享</title>
+<style>
+/* ===== CSS Variables & Reset ===== */
+:root {
+  --wechat-green:  #07C160;
+  --wechat-green-dark: #06AD56;
+  --wechat-link:   #576B95;
+  --wechat-bg:     #EDEDED;
+  --wechat-card-bg:#FFFFFF;
+  --text-primary:  #191919;
+  --text-secondary:#999999;
+  --text-hint:     #B2B2B2;
+  --border-color:  #E5E5E5;
+  --shadow-card:   0 1px 6px rgba(0,0,0,0.08);
+  --font-stack:    -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+  --radius-card:   12px;
+  --radius-btn:    8px;
+  --max-width:     448px;
+  --safe-bottom:   env(safe-area-inset-bottom, 16px);
+  --theme-color: #07C160;
+  --theme-color-dark: #06AD56;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-stack);
+  background: var(--wechat-bg);
+  color: var(--text-primary);
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Theme overrides */
+body[data-theme="green"]  { --theme-color: #07C160; --theme-color-dark: #06AD56; }
+body[data-theme="blue"]   { --theme-color: #1989FA; --theme-color-dark: #1676D4; }
+body[data-theme="orange"] { --theme-color: #FF976A; --theme-color-dark: #E87D52; }
+body[data-theme="red"]    { --theme-color: #EE0A24; --theme-color-dark: #D40820; }
+
+/* ===== Layout ===== */
+.app-container {
+  width: 100%;
+  max-width: var(--max-width);
+  padding: 20px 16px;
+  padding-bottom: calc(var(--safe-bottom) + 20px);
+}
+
+/* ===== Header ===== */
+.app-header { text-align: center; margin-bottom: 20px; }
+.app-header .logo { font-size: 32px; margin-bottom: 4px; }
+.app-header h1 { font-size: 18px; font-weight: 600; }
+.app-header .subtitle { font-size: 13px; color: var(--text-hint); margin-top: 2px; }
+
+/* ===== Panels ===== */
+.panel { display: none; }
+.panel.active { display: block; animation: fadeInUp 0.35s ease; }
+
+/* ===== Setup Guide (file:// detection) ===== */
+.setup-guide {
+  background: #FFF9C4;
+  border-radius: var(--radius-card);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.setup-guide .setup-title { font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+.setup-guide code {
+  display: block;
+  background: #263238;
+  color: #A5D6A7;
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin: 8px 0;
+  font-size: 13px;
+  word-break: break-all;
+  user-select: all;
+  cursor: text;
+}
+.setup-guide .setup-ok { color: #2E7D32; font-weight: 500; }
+
+/* ===== Form ===== */
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+.form-group input, .form-group textarea {
+  width: 100%; padding: 10px 14px; font-size: 15px; font-family: var(--font-stack);
+  border: 1px solid var(--border-color); border-radius: var(--radius-btn);
+  background: var(--wechat-card-bg); color: var(--text-primary);
+  transition: border-color 0.2s; outline: none;
+}
+.form-group input:focus, .form-group textarea:focus { border-color: var(--theme-color); }
+.form-group textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+.form-group .char-count { text-align: right; font-size: 12px; color: var(--text-hint); margin-top: 4px; }
+
+/* ===== Theme Picker ===== */
+.theme-picker { display: flex; gap: 10px; }
+.theme-btn {
+  width: 38px; height: 38px; border-radius: 50%; border: 3px solid transparent;
+  cursor: pointer; transition: transform 0.15s, border-color 0.15s; outline: none;
+}
+.theme-btn:active { transform: scale(0.92); }
+.theme-btn.active { border-color: var(--text-primary); box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--text-primary); }
+.theme-btn.green  { background: #07C160; }
+.theme-btn.blue   { background: #1989FA; }
+.theme-btn.orange { background: #FF976A; }
+.theme-btn.red    { background: #EE0A24; }
+
+/* ===== WeChat Card ===== */
+.wechat-card {
+  background: var(--wechat-card-bg); border-radius: var(--radius-card);
+  overflow: hidden; box-shadow: var(--shadow-card); margin: 16px 0;
+}
+.card-image-area {
+  width: 100%; height: 200px; background: linear-gradient(135deg, #F0F0F0 0%, #E8E8E8 100%);
+  position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
+}
+.card-image-area img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
+.card-image-area img.hidden, .card-image-placeholder.hidden { display: none; }
+.card-image-placeholder { font-size: 48px; opacity: 0.35; z-index: 1; }
+.card-body { padding: 14px 16px 12px; }
+.card-body .card-title {
+  font-size: 17px; font-weight: 500; line-height: 1.4;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.card-body .card-desc {
+  font-size: 14px; color: var(--text-secondary); margin-top: 6px; line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.card-footer {
+  border-top: 1px solid var(--border-color); padding: 10px 16px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.card-footer .card-link-text { font-size: 13px; color: var(--wechat-link); }
+.card-footer .card-arrow { color: #C7C7CC; font-size: 14px; }
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; padding: 12px 20px; font-size: 16px; font-weight: 500;
+  font-family: var(--font-stack); border: none; border-radius: var(--radius-btn);
+  cursor: pointer; transition: background 0.15s, transform 0.1s; outline: none;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--theme-color); color: #fff; }
+.btn-primary:hover { background: var(--theme-color-dark); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-outline { background: var(--wechat-card-bg); color: var(--theme-color); border: 1px solid var(--theme-color); }
+.btn-outline:hover { background: #F5F5F5; }
+.btn-secondary { background: var(--wechat-card-bg); color: var(--text-primary); border: 1px solid var(--border-color); }
+.btn-secondary:hover { background: #F5F5F5; }
+
+/* ===== Share Panel ===== */
+.share-section { text-align: center; }
+.share-section .section-title { font-size: 17px; font-weight: 600; margin-bottom: 20px; }
+.qr-wrapper { display: flex; justify-content: center; margin-bottom: 20px; }
+.qr-container {
+  padding: 16px; background: #fff; border-radius: 12px;
+  box-shadow: var(--shadow-card); display: inline-block;
+}
+.qr-container canvas, .qr-container img { display: block; }
+.share-url-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.share-url-row input {
+  flex: 1; padding: 10px 12px; font-size: 13px; font-family: var(--font-stack);
+  border: 1px solid var(--border-color); border-radius: var(--radius-btn);
+  background: #FAFAFA; color: var(--text-secondary); word-break: break-all;
+}
+.share-url-row .btn { width: auto; flex-shrink: 0; padding: 10px 16px; font-size: 14px; }
+.hint-text { font-size: 13px; color: var(--text-hint); margin: 12px 0 20px; line-height: 1.6; }
+.hint-text span.highlight { color: var(--theme-color); font-weight: 500; }
+.btn-row { display: flex; gap: 10px; margin-top: 8px; }
+.btn-row .btn { flex: 1; }
+
+/* ===== Viewer ===== */
+.viewer-section { text-align: center; margin-bottom: 24px; }
+.viewer-section .viewer-hint { font-size: 13px; color: var(--text-hint); margin-bottom: 8px; }
+
+/* ===== Location ===== */
+.location-section { margin-top: 20px; }
+.location-btn {
+  display: inline-flex; align-items: center; gap: 8px; width: 100%;
+  padding: 14px 20px; font-size: 16px; font-weight: 500; font-family: var(--font-stack);
+  background: var(--theme-color); color: #fff; border: none; border-radius: var(--radius-btn);
+  cursor: pointer; transition: background 0.15s, transform 0.1s; outline: none;
+}
+.location-btn:active { transform: scale(0.97); }
+.location-btn:hover { background: var(--theme-color-dark); }
+.location-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.spinner {
+  display: inline-block; width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff;
+  border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.location-result {
+  background: #fff; border-radius: var(--radius-card); padding: 16px;
+  margin-top: 16px; box-shadow: var(--shadow-card); text-align: left;
+}
+.location-result .loc-header { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
+.location-result .loc-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; font-size: 14px; }
+.location-result .loc-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.location-result .loc-address { color: var(--text-primary); line-height: 1.5; }
+.location-result .loc-coords { color: var(--text-secondary); font-size: 13px; }
+.location-result .loc-source {
+  font-size: 12px; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-top: 4px;
+}
+.location-result .loc-map { margin-top: 10px; border-radius: 8px; overflow: hidden; background: #F0F0F0; }
+.location-result .loc-map img { width: 100%; height: auto; display: block; }
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) translateY(20px);
+  background: rgba(0,0,0,0.78); color: #fff; padding: 10px 20px; border-radius: 8px;
+  font-size: 14px; pointer-events: none; opacity: 0;
+  transition: opacity 0.25s, transform 0.25s; z-index: 9999;
+}
+.toast.show { opacity: 1; transform: translate(-50%, -50%) translateY(0); }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hidden { display: none !important; }
+
+/* ===== Responsive ===== */
+@media (min-width: 720px) {
+  .app-container { max-width: 720px; }
+  .editor-layout { display: flex; gap: 24px; align-items: flex-start; }
+  .editor-layout .editor-form { flex: 1; }
+  .editor-layout .editor-preview { flex: 1; position: sticky; top: 20px; }
+  .editor-preview-label { font-size: 14px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px; display: block !important; }
+}
+@media (max-width: 719px) {
+  .editor-preview-label { display: none !important; }
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CCC; border-radius: 2px; }
+</style>
+</head>
+<body data-mode="editor" data-theme="green">
+
+<div class="app-container">
+
+  <!-- Header -->
+  <div class="app-header">
+    <div class="logo">💬</div>
+    <h1>小卡片分享</h1>
+    <p class="subtitle" id="header-subtitle">创建卡片，分享到群里，朋友点开即可共享位置</p>
+  </div>
+
+  <!-- ===== Setup Guide (shown when on file:// protocol) ===== -->
+  <div class="setup-guide hidden" id="setup-guide">
+    <div class="setup-title">⚠️ 当前是本地文件打开模式</div>
+    <p>直接用浏览器打开 HTML 文件无法分享给别人。请先启动一个本地 HTTP 服务：</p>
+    <code>cd d:\python\project\html &amp;&amp; python -m http.server 8080</code>
+    <p>然后访问：<span class="setup-ok" id="setup-url">http://localhost:8080</span></p>
+    <p style="margin-top:8px;color:var(--text-hint);">启动后刷新本页面即可正常使用分享功能。</p>
+  </div>
+
+  <!-- ==================== EDITOR PANEL ==================== -->
+  <div class="panel active" id="panel-editor">
+    <div class="editor-layout">
+      <div class="editor-form">
+        <form id="card-form" autocomplete="off">
+          <div class="form-group">
+            <label for="inp-title">卡片标题 *</label>
+            <input type="text" id="inp-title" maxlength="60" placeholder="比如：今晚聚餐，来不来？">
+            <div class="char-count"><span id="title-count">0</span>/60</div>
+          </div>
+          <div class="form-group">
+            <label for="inp-desc">卡片描述</label>
+            <textarea id="inp-desc" maxlength="200" placeholder="告诉朋友们这个活动的内容..."></textarea>
+            <div class="char-count"><span id="desc-count">0</span>/200</div>
+          </div>
+          <div class="form-group">
+            <label for="inp-image">封面图片URL（可选）</label>
+            <input type="text" id="inp-image" placeholder="https://example.com/image.jpg">
+          </div>
+          <div class="form-group">
+            <label>主题颜色</label>
+            <div class="theme-picker" id="theme-picker">
+              <button type="button" class="theme-btn green active" data-theme="green" aria-label="绿色"></button>
+              <button type="button" class="theme-btn blue" data-theme="blue" aria-label="蓝色"></button>
+              <button type="button" class="theme-btn orange" data-theme="orange" aria-label="橙色"></button>
+              <button type="button" class="theme-btn red" data-theme="red" aria-label="红色"></button>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">✨ 生成分享链接</button>
+        </form>
+      </div>
+      <div class="editor-preview">
+        <p class="editor-preview-label">📱 实时预览</p>
+        <div class="wechat-card">
+          <div class="card-image-area">
+            <img id="preview-image" src="" alt="" class="hidden">
+            <div class="card-image-placeholder" id="preview-placeholder">🖼️</div>
+          </div>
+          <div class="card-body">
+            <div class="card-title" id="preview-title">卡片标题</div>
+            <div class="card-desc" id="preview-desc">卡片描述会显示在这里...</div>
+          </div>
+          <div class="card-footer">
+            <span class="card-link-text">查看详情</span>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SHARE PANEL ==================== -->
+  <div class="panel" id="panel-share">
+    <div class="share-section">
+      <p class="section-title">📤 分享你的卡片</p>
+      <div class="qr-wrapper">
+        <div class="qr-container" id="qr-container"></div>
+      </div>
+      <div class="share-url-row">
+        <input type="text" id="share-url" readonly aria-label="分享链接">
+        <button class="btn btn-primary" id="btn-copy">📋 复制</button>
+      </div>
+      <p class="hint-text" id="hint-lan">
+        把链接或二维码发到微信群<br>
+        ⚠️ 需要双方在<strong>同一个 WiFi</strong> 下
+      </p>
+      <div class="btn-row">
+        <button class="btn btn-outline" id="btn-edit-again">✏️ 重新编辑</button>
+        <button class="btn btn-secondary" id="btn-preview-card">👁️ 预览卡片</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== VIEWER PANEL ==================== -->
+  <div class="panel" id="panel-viewer">
+    <div class="viewer-section">
+      <p class="viewer-hint">📨 有人给你分享了一张卡片</p>
+      <div class="wechat-card">
+        <div class="card-image-area">
+          <img id="viewer-image" src="" alt="" class="hidden">
+          <div class="card-image-placeholder" id="viewer-placeholder">🖼️</div>
+        </div>
+        <div class="card-body">
+          <div class="card-title" id="viewer-title"></div>
+          <div class="card-desc" id="viewer-desc"></div>
+        </div>
+        <div class="card-footer">
+          <span class="card-link-text">查看详情</span>
+          <span class="card-arrow">›</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="location-section">
+      <button class="location-btn" id="btn-share-location">
+        📍 共享我的位置
+      </button>
+      <div class="location-result hidden" id="location-result">
+        <div class="loc-header">📍 我的位置</div>
+        <div class="loc-row"><span class="loc-icon">🏠</span><span class="loc-address" id="loc-address">--</span></div>
+        <div class="loc-row"><span class="loc-icon">🌐</span><span class="loc-coords" id="loc-coords">--</span></div>
+        <span class="loc-source" id="loc-source">--</span>
+        <div class="loc-map" id="loc-map"></div>
+      </div>
+    </div>
+
+    <div style="margin-top: 24px; text-align: center;">
+      <button class="btn btn-outline" id="btn-create-my-own">✏️ 我也要创建卡片</button>
+    </div>
+  </div>
+
+</div><!-- /app-container -->
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- QRCode.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+(function() {
+'use strict';
+
+// ==================== State ====================
+const App = {
+  cardData: null,
+  qrcodeInstance: null,
+  geoRequested: false,
+  isFileProtocol: window.location.protocol === 'file:',
+};
+
+// ==================== DOM Helpers ====================
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
+const body = document.body;
+
+// ==================== Toast ====================
+let toastTimer;
+function toast(msg, dur = 2000) {
+  clearTimeout(toastTimer);
+  const el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  toastTimer = setTimeout(() => el.classList.remove('show'), dur);
+}
+
+// ==================== Panel Switching ====================
+function showPanel(panel) {
+  $$('.panel').forEach(p => p.classList.remove('active'));
+  panel.classList.add('active');
+  panel.style.animation = 'none';
+  panel.offsetHeight;
+  panel.style.animation = '';
+}
+
+// ==================== Encode / Decode ====================
+function btoaUTF8(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  bytes.forEach(b => bin += String.fromCharCode(b));
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function atobUTF8(b64) {
+  b64 = b64.replace(/-/g, '+').replace(/_/g, '/');
+  while (b64.length % 4) b64 += '=';
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+function encode(data) { return btoaUTF8(JSON.stringify(data)); }
+function decode(hash) {
+  try {
+    if (!hash) return null;
+    const d = JSON.parse(atobUTF8(hash));
+    return (d.v === 1 && d.t && d.t.trim()) ? d : null;
+  } catch(e) { return null; }
+}
+
+// ==================== Mode Switching ====================
+function switchMode(mode, cardData) {
+  if (cardData) App.cardData = cardData;
+  const theme = (cardData && cardData.th) || 'green';
+  body.setAttribute('data-theme', theme);
+  body.setAttribute('data-mode', mode);
+
+  if (mode === 'editor') {
+    showPanel($('#panel-editor'));
+    $('#header-subtitle').textContent = '创建卡片，分享到群里，朋友点开即可共享位置';
+    window.location.hash = '';
+    renderEditor();
+  } else if (mode === 'share') {
+    showPanel($('#panel-share'));
+    $('#header-subtitle').textContent = '把链接或二维码分享到微信群';
+    renderShare();
+  } else if (mode === 'viewer') {
+    showPanel($('#panel-viewer'));
+    $('#header-subtitle').textContent = '有人给你分享了一张卡片';
+    renderViewer();
+  }
+}
+
+// ==================== Setup Guide ====================
+function checkProtocol() {
+  if (App.isFileProtocol) {
+    $('#setup-guide').classList.remove('hidden');
+    $('#setup-url').textContent = 'http://localhost:8080';
+  }
+}
+
+// ==================== Editor ====================
+function renderEditor() {
+  const d = App.cardData || { t:'', d:'', i:'', th:'green' };
+  $('#inp-title').value = d.t || '';
+  $('#inp-desc').value = d.d || '';
+  $('#inp-image').value = d.i || '';
+  updateCharCounts();
+  updateThemePicker(d.th || 'green');
+  updatePreview();
+}
+
+function updateThemePicker(th) {
+  $$('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === th));
+  body.setAttribute('data-theme', th);
+}
+
+function updateCharCounts() {
+  $('#title-count').textContent = $('#inp-title').value.length;
+  $('#desc-count').textContent = $('#inp-desc').value.length;
+}
+
+function updatePreview() {
+  $('#preview-title').textContent = $('#inp-title').value.trim() || '卡片标题';
+  $('#preview-desc').textContent = $('#inp-desc').value.trim() || '卡片描述会显示在这里...';
+  const imgUrl = $('#inp-image').value.trim();
+  const img = $('#preview-image');
+  const ph = $('#preview-placeholder');
+  if (imgUrl) {
+    img.src = imgUrl;
+    img.onload = () => { img.classList.remove('hidden'); ph.classList.add('hidden'); };
+    img.onerror = () => { img.classList.add('hidden'); ph.classList.remove('hidden'); };
+  } else {
+    img.classList.add('hidden');
+    ph.classList.remove('hidden');
+  }
+}
+
+// ---- Editor Events ----
+$('#card-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const data = {
+    v: 1,
+    t: $('#inp-title').value.trim(),
+    d: $('#inp-desc').value.trim(),
+    i: $('#inp-image').value.trim(),
+    th: body.getAttribute('data-theme') || 'green',
+  };
+  if (!data.t) { toast('⚠️ 请输入卡片标题'); $('#inp-title').focus(); return; }
+  if (App.isFileProtocol) { toast('⚠️ 请先用 HTTP 服务打开本页面（见顶部提示）'); return; }
+  App.cardData = data;
+  const hash = encode(data);
+  const base = window.location.origin + window.location.pathname;
+  history.replaceState(null, '', base + '#' + hash);
+  switchMode('share', data);
+});
+
+let debounceTimer;
+$('#inp-title').addEventListener('input', function() { updateCharCounts(); clearTimeout(debounceTimer); debounceTimer = setTimeout(updatePreview, 250); });
+$('#inp-desc').addEventListener('input', function() { updateCharCounts(); clearTimeout(debounceTimer); debounceTimer = setTimeout(updatePreview, 250); });
+$('#inp-image').addEventListener('input', function() { clearTimeout(debounceTimer); debounceTimer = setTimeout(updatePreview, 250); });
+$('#theme-picker').addEventListener('click', function(e) {
+  const btn = e.target.closest('.theme-btn');
+  if (!btn) return;
+  updateThemePicker(btn.dataset.theme);
+  updatePreview();
+});
+
+// ==================== Share Panel ====================
+function buildShareUrl(hash) {
+  return window.location.origin + window.location.pathname + '#' + hash;
+}
+
+function renderShare() {
+  const hash = window.location.hash.slice(1) || '';
+  const shareUrl = buildShareUrl(hash);
+  $('#share-url').value = shareUrl;
+
+  // QR code
+  const qrBox = $('#qr-container');
+  qrBox.innerHTML = '';
+  if (typeof QRCode !== 'undefined') {
+    App.qrcodeInstance = new QRCode(qrBox, {
+      text: shareUrl, width: 220, height: 220,
+      colorDark: '#191919', colorLight: '#FFFFFF',
+      correctLevel: QRCode.CorrectLevel.L,
+    });
+  } else {
+    qrBox.innerHTML = '<p style="padding:20px;color:#999;">二维码加载中…</p>';
+    setTimeout(() => {
+      if (typeof QRCode !== 'undefined') {
+        new QRCode(qrBox, { text: shareUrl, width: 220, height: 220, colorDark: '#191919', colorLight: '#FFFFFF', correctLevel: QRCode.CorrectLevel.L });
+      }
+    }, 2000);
+  }
+
+  // LAN IP hint
+  detectLANIP().then(ip => {
+    if (ip && ip !== '127.0.0.1') {
+      const port = window.location.port || '8080';
+      const lanUrl = `http://${ip}:${port}${window.location.pathname}#${hash}`;
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        $('#share-url').value = lanUrl;
+      }
+      $('#hint-lan').innerHTML =
+        `把链接或二维码发到微信群<br>📡 你的局域网地址：<span class="highlight">http://${ip}:${port}</span><br>⚠️ 双方需在<strong>同一 WiFi</strong> 下`;
+    }
+  }).catch(() => {});
+}
+
+$('#btn-copy').addEventListener('click', function() {
+  const url = $('#share-url').value;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => toast('✅ 已复制！')).catch(() => fallbackCopy(url));
+  } else {
+    fallbackCopy(url);
+  }
+});
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); toast('✅ 已复制！'); } catch(e) { toast('❌ 复制失败，请手动复制'); }
+  document.body.removeChild(ta);
+}
+
+$('#btn-edit-again').addEventListener('click', function() { switchMode('editor', App.cardData); });
+$('#btn-preview-card').addEventListener('click', function() {
+  if (App.cardData) switchMode('viewer', App.cardData);
+});
+
+// ==================== Viewer ====================
+function renderViewer() {
+  const d = App.cardData;
+  if (!d) { switchMode('editor'); return; }
+  $('#viewer-title').textContent = d.t || '';
+  $('#viewer-desc').textContent = d.d || '';
+  const img = $('#viewer-image');
+  const ph = $('#viewer-placeholder');
+  if (d.i) {
+    img.src = d.i;
+    img.onload = () => { img.classList.remove('hidden'); ph.classList.add('hidden'); };
+    img.onerror = () => { img.classList.add('hidden'); ph.classList.remove('hidden'); };
+  } else {
+    img.classList.add('hidden');
+    ph.classList.remove('hidden');
+  }
+  // Reset location
+  $('#location-result').classList.add('hidden');
+  const btn = $('#btn-share-location');
+  btn.classList.remove('hidden');
+  btn.disabled = false;
+  btn.innerHTML = '📍 共享我的位置';
+  App.geoRequested = false;
+}
+
+// ==================== Location ====================
+$('#btn-share-location').addEventListener('click', function() {
+  if (App.geoRequested) return;
+  App.geoRequested = true;
+  const btn = $('#btn-share-location');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 定位中...';
+  requestLocation().then(showLocation).catch(err => {
+    toast('❌ ' + (err.message || '获取位置失败'));
+    btn.disabled = false;
+    btn.innerHTML = '📍 共享我的位置';
+    App.geoRequested = false;
+  });
+});
+
+function requestLocation() {
+  return tryGPS().catch(() => tryIPAPI_co()).catch(() => tryIPAPI_com());
+}
+
+// Layer 1: Browser GPS
+function tryGPS() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) return reject(new Error('浏览器不支持GPS'));
+    const tid = setTimeout(() => reject(new Error('GPS超时')), 10000);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        clearTimeout(tid);
+        const { latitude: lat, longitude: lon, accuracy } = pos.coords;
+        resolve({ lat, lon, address: await revGeo(lat, lon), source: 'gps', accuracy: Math.round(accuracy) });
+      },
+      () => { clearTimeout(tid); reject(new Error('GPS不可用')); },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+    );
+  });
+}
+
+// Layer 2: ipapi.co
+async function tryIPAPI_co() {
+  const ctrl = new AbortController();
+  const tid = setTimeout(() => ctrl.abort(), 5000);
+  try {
+    const res = await fetch('https://ipapi.co/json/', { signal: ctrl.signal });
+    clearTimeout(tid);
+    if (!res.ok) throw new Error('fail');
+    const d = await res.json();
+    if (d.error) throw new Error(d.reason);
+    const addr = [d.city, d.region, d.country_name].filter(Boolean).join(', ');
+    return { lat: d.latitude, lon: d.longitude, address: addr || `${d.latitude},${d.longitude}`, source: 'ip', accuracy: null };
+  } catch(e) { clearTimeout(tid); throw e; }
+}
+
+// Layer 3: ip-api.com (JSONP fallback)
+function tryIPAPI_com() {
+  return new Promise((resolve, reject) => {
+    const cb = '_ipapi_' + Date.now();
+    const tid = setTimeout(() => { delete window[cb]; reject(new Error('IP定位超时')); }, 8000);
+    window[cb] = function(d) {
+      clearTimeout(tid); delete window[cb];
+      if (d && d.lat !== undefined) {
+        const addr = [d.city, d.regionName, d.country].filter(Boolean).join(', ');
+        resolve({ lat: d.lat, lon: d.lon, address: addr || `${d.lat},${d.lon}`, source: 'ip', accuracy: null });
+      } else { reject(new Error('无位置数据')); }
+    };
+    const s = document.createElement('script');
+    s.src = 'http://ip-api.com/json/?callback=' + cb + '&fields=lat,lon,city,regionName,country';
+    s.onerror = () => { clearTimeout(tid); delete window[cb]; reject(new Error('ip-api不可用')); };
+    document.head.appendChild(s);
+  });
+}
+
+// Reverse geocode via Nominatim
+const _geoCache = {};
+let _lastGeo = 0;
+async function revGeo(lat, lon) {
+  const k = lat.toFixed(3) + ',' + lon.toFixed(3);
+  if (_geoCache[k]) return _geoCache[k];
+  const wait = Math.max(0, 1100 - (Date.now() - _lastGeo));
+  if (wait) await new Promise(r => setTimeout(r, wait));
+  _lastGeo = Date.now();
+  try {
+    const lang = navigator.language || 'zh-CN';
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1&accept-language=${lang}`,
+      { headers: { 'User-Agent': 'WeChatCardApp/1.0' } }
+    );
+    if (!res.ok) throw new Error('fail');
+    const d = await res.json();
+    _geoCache[k] = d.display_name || `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+    return _geoCache[k];
+  } catch(e) { return `${lat.toFixed(4)}, ${lon.toFixed(4)}`; }
+}
+
+function showLocation(r) {
+  $('#btn-share-location').classList.add('hidden');
+  const res = $('#location-result');
+  res.classList.remove('hidden');
+  $('#loc-address').textContent = r.address || `${r.lat}, ${r.lon}`;
+  let coordText = `${r.lat.toFixed(6)}, ${r.lon.toFixed(6)}`;
+  if (r.accuracy) coordText += ` (±${r.accuracy}m)`;
+  $('#loc-coords').textContent = coordText;
+  if (r.source === 'gps') {
+    $('#loc-source').textContent = '📡 GPS定位 · 高精度';
+    $('#loc-source').style.cssText = 'background:#E8F5E9;color:#2E7D32';
+  } else {
+    $('#loc-source').textContent = '🌐 IP定位 · 近似位置';
+    $('#loc-source').style.cssText = 'background:#FFF3E0;color:#E65100';
+  }
+  const mapUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${r.lat},${r.lon}&zoom=14&size=400x200&markers=${r.lat},${r.lon},red-pushpin`;
+  $('#loc-map').innerHTML = `<img src="${mapUrl}" alt="地图" loading="lazy" onerror="this.parentElement.innerHTML='<div style=padding:40px;text-align:center;color:#999>地图不可用</div>'">`;
+}
+
+// ==================== LAN IP Detection (WebRTC) ====================
+function detectLANIP() {
+  return new Promise((resolve, reject) => {
+    try {
+      const pc = new RTCPeerConnection({ iceServers: [] });
+      pc.createDataChannel('');
+      pc.createOffer().then(o => pc.setLocalDescription(o));
+      pc.onicecandidate = (ice) => {
+        if (!ice || !ice.candidate || !ice.candidate.candidate) return;
+        const m = ice.candidate.candidate.match(/(\d{1,3}\.){3}\d{1,3}/);
+        if (m) {
+          const ip = m[0];
+          if (!ip.startsWith('127.') && !ip.startsWith('0.')) { pc.close(); resolve(ip); }
+        }
+      };
+      setTimeout(() => { pc.close(); reject(); }, 3000);
+    } catch(e) { reject(e); }
+  });
+}
+
+// ==================== Boot ====================
+function boot() {
+  checkProtocol();
+  const hash = window.location.hash.slice(1);
+  if (hash) {
+    const data = decode(hash);
+    if (data) { switchMode('viewer', data); return; }
+  }
+  switchMode('editor');
+}
+
+$('#btn-create-my-own').addEventListener('click', function() {
+  App.cardData = null;
+  switchMode('editor');
+});
+
+window.addEventListener('hashchange', function() {
+  const hash = window.location.hash.slice(1);
+  if (hash) { const d = decode(hash); if (d) { switchMode('viewer', d); return; } }
+  switchMode('editor');
+});
+
+document.addEventListener('DOMContentLoaded', boot);
+
+})();
+</script>
+</body>
+</html>
