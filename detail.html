@@ -129,10 +129,16 @@
             </p>
         </div>
 
-        <div class="footer">高德地图提供位置服务 © 2024 — v5</div>
+        <div class="footer">高德地图提供位置服务 © 2024 — v6</div>
     </div>
 
     <!-- ============ 高德 JS API SDK（正确 URL：maps 不是 v2/maps）============ -->
+    <script>
+        // ⚠️ 必须在加载 SDK 之前设置安全密钥
+        window._AMapSecurityConfig = {
+            securityJsCode: '3a176525f7e88919a3c2eddd597e1609'
+        };
+    </script>
     <script>
         var AMAP_KEY = '9f235e325bcb881381cbcb9f432982d4';
 
