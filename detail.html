@@ -322,7 +322,7 @@ function ipCom(){
       } else reject(new Error('无数据'));
     };
     var s = document.createElement('script');
-    s.src = 'http://ip-api.com/json/?callback='+cb+'&fields=lat,lon,city,regionName,country';
+    s.src = 'https://ip-api.com/json/?callback='+cb+'&fields=lat,lon,city,regionName,country';
     s.onerror = function(){ clearTimeout(t); delete window[cb]; reject(new Error('IP服务不可用')); };
     document.head.appendChild(s);
   });
