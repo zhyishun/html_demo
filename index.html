@@ -9,7 +9,7 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="夏至将至" id="og-title">
 <meta property="og:description" content="夏至，太阳走到北回归线，万物繁盛到极致。这一天，白昼最长，光阴最慷慨。" id="og-desc">
-<meta property="og:image" content="https://fengxiang.zhyishun.top/demo.jpg" id="og-image">
+<meta property="og:image" content="https://fengxiang.zhyishun.top/demo2.jpg" id="og-image">
 <!-- ★ 告诉微信爬虫图片尺寸，帮助生成卡片 -->
 <meta property="og:image:width" content="600">
 <meta property="og:image:height" content="400">
@@ -36,7 +36,7 @@
       document.title = d.t;
       document.getElementById('og-title').setAttribute('content', d.t);
       document.getElementById('og-desc').setAttribute('content', d.d||d.t);
-      var imgUrl = d.i || (BASE + '/demo.jpg');
+      var imgUrl = d.i || (BASE + '/demo2.jpg');
       if(imgUrl.indexOf('//')===-1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
       document.getElementById('og-image').setAttribute('content', imgUrl);
     }
@@ -187,7 +187,7 @@ window._SD = {
   title: '夏至将至',
   desc:  '夏至，太阳走到北回归线，万物繁盛到极致。这一天，白昼最长，光阴最慷慨。',
   link:  location.href,  // JSSDK 分享时用实际 URL（含 hash/查询参数，确保点击跳转正确）
-  imgUrl:'https://fengxiang.zhyishun.top/demo.jpg'
+  imgUrl:'https://fengxiang.zhyishun.top/demo2.jpg'
 };
 
 // WeixinJSBridge — 旧版微信兜底（PC微信 + 部分旧版手机微信）
@@ -255,7 +255,7 @@ function updateOG(title, desc, img){
   $('#og-title').setAttribute('content', title || '夏至将至');
   $('#og-desc').setAttribute('content', desc || '夏至，太阳走到北回归线，万物繁盛到极致。这一天，白昼最长，光阴最慷慨。');
   if(img && img.indexOf('//') === -1) img = location.origin + '/' + img.replace(/^\//,'');
-  if(!img) img = 'https://fengxiang.zhyishun.top/demo.jpg';
+  if(!img) img = 'https://fengxiang.zhyishun.top/demo2.jpg';
   $('#og-image').setAttribute('content', img);
   // ★ og:url 不动 — 保持静态值给微信爬虫看
   if(img){ (new Image()).src = img; }
@@ -264,7 +264,7 @@ function updateOG(title, desc, img){
 // ========== 更新分享数据（更新 _SD + OG + JSSDK） ==========
 function updateShareData(title, desc, imgUrl){
   if(imgUrl && imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
-  if(!imgUrl) imgUrl = 'https://fengxiang.zhyishun.top/demo.jpg';
+  if(!imgUrl) imgUrl = 'https://fengxiang.zhyishun.top/demo2.jpg';
 
   // ★ 分享出去的 link = 带 hash 的完整 URL + 缓存破坏参数（破微信 OG 缓存）
   var shareLink = location.origin + location.pathname + '?_t=' + Date.now() + location.hash;
