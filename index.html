@@ -1,693 +1,465 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>生成分享卡片</title>
-    <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-            padding-top: 20px;
-        }
-        
-        .header h1 {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        
-        .header p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-        
-        .form-card {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            margin-bottom: 20px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            font-size: 14px;
-            color: #333;
-            font-weight: 500;
-            margin-bottom: 8px;
-        }
-        
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e8e8e8;
-            border-radius: 10px;
-            font-size: 15px;
-            transition: all 0.3s;
-            outline: none;
-            font-family: inherit;
-        }
-        
-        .form-group input:focus,
-        .form-group textarea:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-        
-        .image-preview {
-            width: 100%;
-            height: 200px;
-            border: 2px dashed #ddd;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            background: #f8f9fa;
-            margin-top: 8px;
-            position: relative;
-        }
-        
-        .image-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: none;
-        }
-        
-        .image-preview .placeholder {
-            color: #999;
-            font-size: 14px;
-            text-align: center;
-        }
-        
-        .image-preview .placeholder svg {
-            width: 48px;
-            height: 48px;
-            margin-bottom: 8px;
-            opacity: 0.3;
-        }
-        
-        .image-preview.has-image img {
-            display: block;
-        }
-        
-        .image-preview.has-image .placeholder {
-            display: none;
-        }
-        
-        .btn-primary {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        
-        .btn-primary:active {
-            transform: scale(0.98);
-        }
-        
-        .status-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            padding: 12px 20px;
-            font-size: 14px;
-            text-align: center;
-            z-index: 1000;
-            transform: translateY(-100%);
-            transition: transform 0.3s;
-        }
-        
-        .status-bar.show {
-            transform: translateY(0);
-        }
-        
-        .status-bar.success {
-            background: #52c41a;
-            color: white;
-        }
-        
-        .status-bar.error {
-            background: #ff4d4f;
-            color: white;
-        }
-        
-        .status-bar.info {
-            background: #1890ff;
-            color: white;
-        }
-        
-        .guide-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.85);
-            z-index: 999;
-            display: none;
-            align-items: flex-start;
-            justify-content: flex-end;
-            padding: 20px;
-        }
-        
-        .guide-overlay.show {
-            display: flex;
-        }
-        
-        .guide-content {
-            color: white;
-            text-align: right;
-            margin-top: 10px;
-        }
-        
-        .guide-content img {
-            width: 60px;
-            height: 60px;
-            margin-bottom: 10px;
-            animation: bounce 1s infinite;
-        }
-        
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        .guide-content p {
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 8px;
-        }
-        
-        .guide-content .highlight {
-            color: #ffd700;
-            font-weight: bold;
-        }
-        
-        .card-preview {
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            margin-bottom: 20px;
-            display: none;
-        }
-        
-        .card-preview.show {
-            display: block;
-        }
-        
-        .card-preview .card-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-        }
-        
-        .card-preview .card-body {
-            padding: 16px;
-        }
-        
-        .card-preview .card-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
-            line-height: 1.4;
-        }
-        
-        .card-preview .card-desc {
-            font-size: 14px;
-            color: #666;
-            line-height: 1.5;
-        }
-        
-        .wechat-tips {
-            background: #fffbe6;
-            border: 1px solid #ffe58f;
-            border-radius: 8px;
-            padding: 12px;
-            margin-top: 16px;
-            font-size: 13px;
-            color: #ad6800;
-            line-height: 1.5;
-        }
-        
-        .loading {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 0.8s linear infinite;
-            margin-right: 6px;
-            vertical-align: middle;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>小卡片分享</title>
+<!-- ★ og:url 静态不变，专给微信爬虫看（爬虫不执行JS，只能读静态HTML） -->
+<meta property="og:url" content="https://fengxiang.zhyishun.top/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="小卡片分享" id="og-title">
+<meta property="og:description" content="有人给你分享了一张卡片" id="og-desc">
+<meta property="og:image" content="https://fengxiang.zhyishun.top/demo.jpg" id="og-image">
+<!-- ★ 告诉微信爬虫图片尺寸，帮助生成卡片 -->
+<meta property="og:image:width" content="600">
+<meta property="og:image:height" content="400">
+
+<!-- ★ 同步脚本：微信爬虫如果执行JS，能读到 hash 中的卡片数据更新OG -->
+<script>
+(function(){
+  try{
+    var BASE = 'https://fengxiang.zhyishun.top';
+
+    // 优先从查询参数读取（?d=xxx），fallback 到 hash（#xxx）
+    var raw = '';
+    var m = location.search.match(/[?&]d=([^&]+)/);
+    if(m){ raw = decodeURIComponent(m[1]); }
+    if(!raw){ raw = location.hash.slice(1); }
+    if(!raw) return;
+
+    raw = raw.replace(/-/g,'+').replace(/_/g,'/');
+    while(raw.length%4) raw += '=';
+    var bin = atob(raw), bytes = new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    var d = JSON.parse(new TextDecoder().decode(bytes));
+    if(d.v===1 && d.t){
+      document.title = d.t;
+      document.getElementById('og-title').setAttribute('content', d.t);
+      document.getElementById('og-desc').setAttribute('content', d.d||d.t);
+      var imgUrl = d.i || (BASE + '/demo.jpg');
+      if(imgUrl.indexOf('//')===-1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
+      document.getElementById('og-image').setAttribute('content', imgUrl);
+    }
+  }catch(e){}
+})();
+</script>
+<style>
+:root{--green:#07C160;--green-d:#06AD56;--link:#576B95;--bg:#EDEDED;--card:#fff;--t1:#191919;--t2:#999;--t3:#B2B2B2;--border:#E5E5E5;--shadow:0 1px 6px rgba(0,0,0,.08);--radius:12px;--r:8px;--font:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;--max:448px;--theme:#07C160;--theme-d:#06AD56}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100dvh;display:flex;justify-content:center;-webkit-font-smoothing:antialiased}
+body[data-theme="green"]{--theme:#07C160;--theme-d:#06AD56}
+body[data-theme="blue"]{--theme:#1989FA;--theme-d:#1676D4}
+body[data-theme="orange"]{--theme:#FF976A;--theme-d:#E87D52}
+body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
+.container{width:100%;max-width:var(--max);padding:20px 16px;padding-bottom:calc(env(safe-area-inset-bottom,16px)+20px)}
+.header{text-align:center;margin-bottom:20px}
+.header .icon{font-size:32px;margin-bottom:4px}
+.header h1{font-size:18px;font-weight:600}
+.header p{font-size:13px;color:var(--t3);margin-top:2px}
+.panel{display:none}
+.panel.active{display:block;animation:fadeIn .35s ease}
+.wx-banner{background:#E8F5E9;border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;text-align:center}
+.wx-banner .wx-ok{font-size:15px;font-weight:600;color:#2E7D32}
+.wx-banner .wx-h{font-size:12px;color:#666;margin-top:4px}
+.not-wx{background:#FFF3E0;border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;text-align:center;font-size:14px;color:#E65100}
+.share-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.75);z-index:9998;display:flex;align-items:flex-start;justify-content:flex-end}
+.share-pop{text-align:right;color:#fff;margin:12px 20px 0 0}
+.share-arrow{font-size:48px;line-height:1}
+.share-txt{font-size:16px;font-weight:600;margin:-4px 10px 0 0}
+.share-sub{font-size:13px;opacity:.8;margin:4px 10px 0 0}
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:14px;font-weight:500;margin-bottom:6px}
+.fg input,.fg textarea{width:100%;padding:10px 14px;font-size:15px;font-family:var(--font);border:1px solid var(--border);border-radius:var(--r);background:var(--card);color:var(--t1);outline:none;transition:border-color .2s}
+.fg input:focus,.fg textarea:focus{border-color:var(--theme)}
+.fg textarea{resize:vertical;min-height:80px;line-height:1.5}
+.count{text-align:right;font-size:12px;color:var(--t3);margin-top:4px}
+.dots{display:flex;gap:10px}
+.dot{width:38px;height:38px;border-radius:50%;border:3px solid transparent;cursor:pointer;outline:none;transition:transform .15s}
+.dot:active{transform:scale(.92)}
+.dot.on{border-color:var(--t1);box-shadow:0 0 0 2px #fff,0 0 0 4px var(--t1)}
+.d-green{background:#07C160}.d-blue{background:#1989FA}.d-orange{background:#FF976A}.d-red{background:#EE0A24}
+.card{background:var(--card);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin:16px 0}
+.card.clickable{cursor:pointer;transition:transform .15s}
+.card.clickable:active{transform:scale(.98)}
+.card-img{width:100%;height:200px;background:linear-gradient(135deg,#F0F0F0,#E8E8E8);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.card-img img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0}
+.card-img img.hidden,.card-ph.hidden{display:none}
+.card-ph{font-size:48px;opacity:.35;z-index:1}
+.card-bd{padding:14px 16px 12px}
+.card-bd .ct{font-size:17px;font-weight:500;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-bd .cd{font-size:14px;color:var(--t2);margin-top:6px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.card-ft{border-top:1px solid var(--border);padding:10px 16px;display:flex;justify-content:space-between;align-items:center}
+.card-ft .cf-t{font-size:13px;color:var(--link)}
+.card-ft .cf-a{color:#C7C7CC;font-size:14px}
+.tap-hint{text-align:center;font-size:12px;color:var(--t3);margin-top:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:12px 20px;font-size:16px;font-weight:500;font-family:var(--font);border:none;border-radius:var(--r);cursor:pointer;outline:none;transition:background .15s,transform .1s}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--theme);color:#fff}.btn-p:hover{background:var(--theme-d)}
+.btn-o{background:var(--card);color:var(--theme);border:1px solid var(--theme)}
+.btns{display:flex;gap:10px;margin-top:8px}.btns .btn{flex:1}
+.spin{display:inline-block;width:18px;height:18px;border:2px solid rgba(153,153,153,.3);border-top-color:#999;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loc-res{background:#fff;border-radius:var(--radius);padding:16px;margin-top:16px;box-shadow:var(--shadow);text-align:left}
+.loc-res .lh{font-size:15px;font-weight:600;margin-bottom:10px}
+.loc-res .lr{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;font-size:14px}
+.loc-res .li{font-size:16px;flex-shrink:0;margin-top:1px}
+.loc-res .la{color:var(--t1);line-height:1.5}
+.loc-res .lc{color:var(--t2);font-size:13px}
+.loc-res .ls{font-size:12px;padding:4px 8px;border-radius:4px;display:inline-block;margin-top:4px}
+.loc-res .lm{margin-top:10px;border-radius:8px;overflow:hidden;background:#F0F0F0}
+.loc-res .lm img{width:100%;height:auto;display:block}
+.loading{text-align:center;padding:20px;color:var(--t2)}
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) translateY(20px);background:rgba(0,0,0,.78);color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;pointer-events:none;opacity:0;transition:opacity .25s,transform .25s;z-index:9999}
+.toast.on{opacity:1;transform:translate(-50%,-50%) translateY(0)}
+.hidden{display:none !important}
+@keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@media(min-width:720px){.container{max-width:720px}.erow{display:flex;gap:24px;align-items:flex-start}.erow .ef{flex:1}.erow .ep{flex:1;position:sticky;top:20px}.plabel{font-size:14px;font-weight:500;color:var(--t2);margin-bottom:8px;display:block!important}}
+@media(max-width:719px){.plabel{display:none!important}}
+</style>
 </head>
-<body>
-    <div class="status-bar" id="statusBar"></div>
-    
-    <div class="guide-overlay" id="guideOverlay" onclick="hideGuide()">
-        <div class="guide-content">
-            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="margin-bottom:10px">
-                <circle cx="12" cy="12" r="3"></circle>
-                <path d="M12 1v6m0 6v6m4.22-10.22l4.24-4.24M6.34 6.34L2.1 2.1m17.8 17.8l-4.24-4.24M6.34 17.66l-4.24 4.24M23 12h-6m-6 0H1m20.24-4.24l-4.24 4.24M6.34 6.34l-4.24-4.24"></path>
-            </svg>
-            <p>点击右上角 <span class="highlight">···</span></p>
-            <p>选择 <span class="highlight">"发送给朋友"</span> 或 <span class="highlight">"分享到朋友圈"</span></p>
-            <p>即可生成分享卡片</p>
-            <p style="font-size:12px;opacity:0.7;margin-top:10px;">点击任意处关闭提示</p>
-        </div>
+<body data-mode="editor" data-theme="green">
+
+<div class="container">
+  <div class="header">
+    <div class="icon">💬</div>
+    <h1>小卡片分享</h1>
+    <p id="subtitle">创建卡片，分享到微信群</p>
+  </div>
+
+  <div class="wx-banner hidden" id="wx-banner"><div class="wx-ok">✅ 已检测到微信</div><div class="wx-h">编辑卡片后点击右上角 ··· 即可分享</div></div>
+  <div class="not-wx hidden" id="not-wx">
+    ⚠️ 请<strong>在微信中打开</strong>此页面才能分享到微信群<br>
+    <button class="btn btn-p" id="btn-copy-link" style="margin-top:8px;width:auto;display:inline-flex;padding:8px 16px">📋 复制链接发到微信</button>
+  </div>
+
+  <div class="share-overlay hidden" id="share-overlay">
+    <div class="share-pop">
+      <div class="share-arrow">↗️</div>
+      <div class="share-txt">点击右上角 ···</div>
+      <div class="share-sub">「发送给朋友」或「分享到朋友圈」</div>
     </div>
+  </div>
 
-    <div class="container">
-        <div class="header">
-            <h1>🎯 分享卡片生成器</h1>
-            <p>填写信息，生成微信分享卡片</p>
+  <!-- EDITOR -->
+  <div class="panel active" id="p-editor">
+    <div class="erow">
+      <div class="ef">
+        <form id="form" autocomplete="off">
+          <div class="fg"><label for="tit">卡片标题 *</label><input type="text" id="tit" maxlength="60" placeholder="比如：今晚聚餐，来不来？"><div class="count"><span id="tn">0</span>/60</div></div>
+          <div class="fg"><label for="desc">卡片描述</label><textarea id="desc" maxlength="200" placeholder="告诉朋友们这个活动的内容..."></textarea><div class="count"><span id="dn">0</span>/200</div></div>
+          <div class="fg"><label for="img">封面图片链接</label><input type="text" id="img" placeholder="https://example.com/image.jpg（公网可访问的图片URL）"></div>
+          <div class="fg"><label>主题颜色</label><div class="dots" id="dots"><button type="button" class="dot d-green on" data-t="green"></button><button type="button" class="dot d-blue" data-t="blue"></button><button type="button" class="dot d-orange" data-t="orange"></button><button type="button" class="dot d-red" data-t="red"></button></div></div>
+          <button type="submit" class="btn btn-p">📤 分享到微信群</button>
+        </form>
+      </div>
+      <div class="ep">
+        <p class="plabel">📱 小卡片预览</p>
+        <div class="card">
+          <div class="card-img"><img id="pv-img" src="" alt="" class="hidden"><div class="card-ph" id="pv-ph">🖼️</div></div>
+          <div class="card-bd"><div class="ct" id="pv-t">卡片标题</div><div class="cd" id="pv-d">卡片描述会显示在这里...</div></div>
+          <div class="card-ft"><span class="cf-t">查看详情</span><span class="cf-a">›</span></div>
         </div>
-
-        <div class="form-card">
-            <div class="form-group">
-                <label for="title">标题 *</label>
-                <input type="text" id="title" placeholder="请输入分享标题" maxlength="30">
-            </div>
-            
-            <div class="form-group">
-                <label for="desc">描述 *</label>
-                <textarea id="desc" placeholder="请输入分享描述" maxlength="100"></textarea>
-            </div>
-            
-            <div class="form-group">
-                <label for="imgUrl">图片链接 *</label>
-                <input type="url" id="imgUrl" placeholder="https://example.com/image.jpg" oninput="previewImage()">
-                <div class="image-preview" id="imagePreview">
-                    <div class="placeholder">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                            <polyline points="21 15 16 10 5 21"></polyline>
-                        </svg>
-                        <div>输入图片链接后预览</div>
-                    </div>
-                    <img id="previewImg" src="" alt="预览" onload="onImageLoad()" onerror="onImageError()">
-                </div>
-            </div>
-            
-            <button class="btn-primary" id="shareBtn" onclick="initShare()">
-                生成分享卡片
-            </button>
-            
-            <div class="wechat-tips">
-                <strong>💡 使用说明：</strong><br>
-                1. 填写标题、描述和图片链接<br>
-                2. 点击「生成分享卡片」按钮<br>
-                3. 点击右上角「···」分享给好友<br>
-                4. 好友将看到精美的分享卡片
-            </div>
-        </div>
-
-        <div class="card-preview" id="cardPreview">
-            <img class="card-image" id="cardImage" src="" alt="">
-            <div class="card-body">
-                <div class="card-title" id="cardTitle"></div>
-                <div class="card-desc" id="cardDesc"></div>
-            </div>
-        </div>
+      </div>
     </div>
+  </div>
 
-    <script>
-        // 配置
-        const CONFIG = {
-            signUrl: 'http://ms.gstai.com/phone/ajax_sign_vue.php',
-            domain: 'https://fengxiang.zhyishun.top',
-            jumpUrl: 'https://fengxiang.zhyishun.top/detail.html',
-            appId: '' // 将从后端获取
-        };
+  <!-- VIEWER -->
+  <div class="panel" id="p-viewer">
+    <p style="text-align:center;font-size:13px;color:var(--t3);margin-bottom:8px">📨 有人给你分享了一张卡片</p>
+    <div class="card clickable" id="card-view" onclick="location.href='https://fengxiang.zhyishun.top/detail.html'+location.hash">
+      <div class="card-img"><img id="vw-img" src="" alt="" class="hidden"><div class="card-ph" id="vw-ph">🖼️</div></div>
+      <div class="card-bd"><div class="ct" id="vw-t"></div><div class="cd" id="vw-d"></div></div>
+      <div class="card-ft"><span class="cf-t" id="vw-ft">点击卡片 · 查看详情并共享位置</span><span class="cf-a">›</span></div>
+    </div>
+    <p class="tap-hint" id="tap-hint">👆 点击上方卡片查看详情</p>
+    <div style="margin-top:24px;text-align:center"><button class="btn btn-o" id="btn-make">✏️ 我也要创建卡片</button></div>
+  </div>
+</div>
 
-        let wxReady = false;
-        let shareData = {
-            title: '',
-            desc: '',
-            imgUrl: '',
-            link: CONFIG.jumpUrl
-        };
+<div class="toast" id="toast"></div>
 
-        // 显示状态提示
-        function showStatus(message, type = 'info', duration = 3000) {
-            const bar = document.getElementById('statusBar');
-            bar.textContent = message;
-            bar.className = 'status-bar ' + type + ' show';
-            
-            if (duration > 0) {
-                setTimeout(() => {
-                    bar.classList.remove('show');
-                }, duration);
-            }
-        }
+<!-- ★★★ WeChat JSSDK (from CDN) ★★★ -->
+<script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
 
-        // 预览图片
-        function previewImage() {
-            const url = document.getElementById('imgUrl').value.trim();
-            const preview = document.getElementById('imagePreview');
-            const img = document.getElementById('previewImg');
-            
-            if (url) {
-                img.src = url;
-            } else {
-                preview.classList.remove('has-image');
-            }
-        }
+<!-- ★★★ 统一分享数据（全局唯一数据源） ★★★ -->
+<script>
+window._SD = {
+  title: '小卡片分享',
+  desc:  '有人给你分享了一张卡片',
+  link:  location.href,  // JSSDK 分享时用实际 URL（含 hash/查询参数，确保点击跳转正确）
+  imgUrl:'https://fengxiang.zhyishun.top/demo.jpg'
+};
 
-        function onImageLoad() {
-            document.getElementById('imagePreview').classList.add('has-image');
-        }
+// WeixinJSBridge — 旧版微信兜底（PC微信 + 部分旧版手机微信）
+(function bindBridge(){
+  function ready(){
+    if(!window.WeixinJSBridge) return;
+    window.WeixinJSBridge.on('menu:share:appmessage', function(){
+      var s = window._SD;
+      document.title = s.title;
+      window.WeixinJSBridge.invoke('sendAppMessage', {
+        title: s.title, desc: s.desc, link: s.link,
+        img_url: s.imgUrl, img_width: '300', img_height: '300'
+      }, function(){});
+    });
+    window.WeixinJSBridge.on('menu:share:timeline', function(){
+      var s = window._SD;
+      document.title = s.title;
+      window.WeixinJSBridge.invoke('shareTimeline', {
+        title: s.title, link: s.link,
+        img_url: s.imgUrl, img_width: '300', img_height: '300'
+      }, function(){});
+    });
+  }
+  if(window.WeixinJSBridge) ready();
+  document.addEventListener('WeixinJSBridgeReady', ready, false);
+})();
+</script>
 
-        function onImageError() {
-            document.getElementById('imagePreview').classList.remove('has-image');
-            if (document.getElementById('imgUrl').value.trim()) {
-                showStatus('图片加载失败，请检查链接', 'error');
-            }
-        }
+<script>
+(function(){
+'use strict';
 
-        // 获取URL参数
-        function getUrlParams() {
-            const params = new URLSearchParams(window.location.search);
-            return {
-                title: params.get('title') || '',
-                desc: params.get('desc') || '',
-                imgUrl: params.get('imgUrl') || ''
-            };
-        }
+var $ = function(s){ return document.querySelector(s) };
+var $$ = function(s){ return document.querySelectorAll(s) };
+var B = document.body;
+var isWX = /MicroMessenger/i.test(navigator.userAgent);
+var App = { cardData: null, geoDone: false };
 
-        // 初始化页面
-        function initPage() {
-            const params = getUrlParams();
-            if (params.title) document.getElementById('title').value = decodeURIComponent(params.title);
-            if (params.desc) document.getElementById('desc').value = decodeURIComponent(params.desc);
-            if (params.imgUrl) {
-                document.getElementById('imgUrl').value = decodeURIComponent(params.imgUrl);
-                previewImage();
-            }
-        }
+// ========== Toast ==========
+var _tt;
+function toast(m, d){ clearTimeout(_tt); var e = $('#toast'); e.textContent = m; e.classList.add('on'); _tt = setTimeout(function(){ e.classList.remove('on') }, d || 2000); }
 
-        // 获取微信签名
-        async function getWxSignature() {
-            const currentUrl = window.location.href.split('#')[0];
-            
-            try {
-                // 使用 JSONP 或 CORS 请求签名接口
-                const response = await fetch(CONFIG.signUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: 'url=' + encodeURIComponent(currentUrl)
-                });
-                
-                if (!response.ok) {
-                    throw new Error('签名接口请求失败: ' + response.status);
-                }
-                
-                const data = await response.json();
-                return data;
-            } catch (error) {
-                console.error('获取签名失败:', error);
-                // 如果直接请求失败，尝试使用 JSONP 方式
-                return await getWxSignatureJsonp(currentUrl);
-            }
-        }
+// ========== Panel ==========
+function show(p){ $$('.panel').forEach(function(e){ e.classList.remove('active') }); p.classList.add('active'); }
 
-        // JSONP 方式获取签名（备选）
-        function getWxSignatureJsonp(url) {
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                const callbackName = 'wxSignCallback_' + Date.now();
-                
-                window[callbackName] = function(data) {
-                    delete window[callbackName];
-                    document.head.removeChild(script);
-                    resolve(data);
-                };
-                
-                script.onerror = function() {
-                    delete window[callbackName];
-                    document.head.removeChild(script);
-                    reject(new Error('JSONP 请求失败'));
-                };
-                
-                // 设置超时
-                setTimeout(() => {
-                    if (window[callbackName]) {
-                        delete window[callbackName];
-                        if (script.parentNode) document.head.removeChild(script);
-                        reject(new Error('请求超时'));
-                    }
-                }, 10000);
-                
-                script.src = CONFIG.signUrl + 
-                    '?url=' + encodeURIComponent(url) + 
-                    '&callback=' + callbackName;
-                document.head.appendChild(script);
-            });
-        }
+// ========== Base64 ==========
+function b64e(s){ var b = new TextEncoder().encode(s), r = ''; b.forEach(function(v){ r += String.fromCharCode(v) }); return btoa(r).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function b64d(s){ s = s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length % 4) s += '='; var bin = atob(s), b = new Uint8Array(bin.length); for(var i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i); return new TextDecoder().decode(b); }
+function enc(d){ return b64e(JSON.stringify(d)); }
+function dec(h){ try{ if(!h) return null; var d = JSON.parse(b64d(h)); return (d.v === 1 && d.t && d.t.trim()) ? d : null; } catch(e){ return null; } }
 
-        // 配置微信JS-SDK
-        async function configWx() {
-            try {
-                showStatus('正在初始化微信配置...', 'info', 0);
-                
-                const signData = await getWxSignature();
-                console.log('签名数据:', signData);
-                
-                if (!signData || signData.errcode !== 0) {
-                    throw new Error(signData?.errmsg || '签名数据无效');
-                }
-                
-                CONFIG.appId = signData.appId || signData.appid;
-                
-                wx.config({
-                    debug: false,
-                    appId: CONFIG.appId,
-                    timestamp: signData.timestamp,
-                    nonceStr: signData.nonceStr,
-                    signature: signData.signature,
-                    jsApiList: [
-                        'updateAppMessageShareData',
-                        'updateTimelineShareData',
-                        'onMenuShareAppMessage',
-                        'onMenuShareTimeline',
-                        'onMenuShareQQ',
-                        'onMenuShareQZone'
-                    ]
-                });
-                
-                return new Promise((resolve, reject) => {
-                    wx.ready(() => {
-                        wxReady = true;
-                        showStatus('微信配置成功！', 'success');
-                        resolve();
-                    });
-                    
-                    wx.error((err) => {
-                        console.error('微信配置失败:', err);
-                        showStatus('微信配置失败: ' + JSON.stringify(err), 'error');
-                        reject(err);
-                    });
-                });
-                
-            } catch (error) {
-                showStatus('初始化失败: ' + error.message, 'error');
-                throw error;
-            }
-        }
+// ========== 图片 ==========
+function setImg(el, ph, src){
+  if(!src){ el.classList.add('hidden'); ph.classList.remove('hidden'); el.removeAttribute('src'); return; }
+  var done = false;
+  el.onload = function(){ if(!done){ done = true; el.classList.remove('hidden'); ph.classList.add('hidden'); } };
+  el.onerror = function(){ if(!done){ done = true; el.classList.add('hidden'); ph.classList.remove('hidden'); } };
+  el.src = src;
+  if(el.complete) setTimeout(function(){ if(!done && el.naturalWidth > 0){ done = true; el.classList.remove('hidden'); ph.classList.add('hidden'); } }, 50);
+}
 
-        // 设置分享内容
-        function setShareData() {
-            const title = document.getElementById('title').value.trim();
-            const desc = document.getElementById('desc').value.trim();
-            const imgUrl = document.getElementById('imgUrl').value.trim();
-            
-            if (!title || !desc || !imgUrl) {
-                showStatus('请填写完整信息', 'error');
-                return false;
-            }
-            
-            shareData = {
-                title: title,
-                desc: desc,
-                imgUrl: imgUrl,
-                link: CONFIG.jumpUrl
-            };
-            
-            // 更新预览
-            document.getElementById('cardImage').src = imgUrl;
-            document.getElementById('cardTitle').textContent = title;
-            document.getElementById('cardDesc').textContent = desc;
-            document.getElementById('cardPreview').classList.add('show');
-            
-            return true;
-        }
+// ========== OG 标签（只更新 title/desc/image，不碰 og:url） ==========
+function updateOG(title, desc, img){
+  document.title = title || document.title;
+  $('#og-title').setAttribute('content', title || '小卡片分享');
+  $('#og-desc').setAttribute('content', desc || '有人给你分享了一张卡片');
+  if(img && img.indexOf('//') === -1) img = location.origin + '/' + img.replace(/^\//,'');
+  if(!img) img = 'https://fengxiang.zhyishun.top/demo.jpg';
+  $('#og-image').setAttribute('content', img);
+  // ★ og:url 不动 — 保持静态值给微信爬虫看
+  if(img){ (new Image()).src = img; }
+}
 
-        // 注册分享事件
-        function registerShare() {
-            // 分享给朋友
-            wx.onMenuShareAppMessage({
-                title: shareData.title,
-                desc: shareData.desc,
-                link: shareData.link,
-                imgUrl: shareData.imgUrl,
-                success: function() {
-                    showStatus('分享成功！', 'success');
-                    hideGuide();
-                },
-                cancel: function() {
-                    showStatus('已取消分享', 'info');
-                }
-            });
-            
-            // 分享到朋友圈
-            wx.onMenuShareTimeline({
-                title: shareData.title,
-                link: shareData.link,
-                imgUrl: shareData.imgUrl,
-                success: function() {
-                    showStatus('分享成功！', 'success');
-                    hideGuide();
-                },
-                cancel: function() {
-                    showStatus('已取消分享', 'info');
-                }
-            });
-            
-            // 新版 API（1.4.0+）
-            wx.updateAppMessageShareData({
-                title: shareData.title,
-                desc: shareData.desc,
-                link: shareData.link,
-                imgUrl: shareData.imgUrl,
-                success: function() {
-                    console.log('updateAppMessageShareData 成功');
-                }
-            });
-            
-            wx.updateTimelineShareData({
-                title: shareData.title,
-                link: shareData.link,
-                imgUrl: shareData.imgUrl,
-                success: function() {
-                    console.log('updateTimelineShareData 成功');
-                }
-            });
-        }
+// ========== 更新分享数据（更新 _SD + OG + JSSDK） ==========
+function updateShareData(title, desc, imgUrl){
+  if(imgUrl && imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
+  if(!imgUrl) imgUrl = 'https://fengxiang.zhyishun.top/demo.jpg';
 
-        // 初始化分享
-        async function initShare() {
-            if (!setShareData()) return;
-            
-            const btn = document.getElementById('shareBtn');
-            btn.innerHTML = '<span class="loading"></span> 配置中...';
-            btn.disabled = true;
-            
-            try {
-                if (!wxReady) {
-                    await configWx();
-                }
-                
-                registerShare();
-                showGuide();
-                
-            } catch (error) {
-                console.error(error);
-            } finally {
-                btn.innerHTML = '生成分享卡片';
-                btn.disabled = false;
-            }
-        }
+  // ★ 分享出去的 link = 带 hash 的完整 URL + 缓存破坏参数（破微信 OG 缓存）
+  var shareLink = location.origin + location.pathname + '?_t=' + Date.now() + location.hash;
 
-        // 显示引导
-        function showGuide() {
-            document.getElementById('guideOverlay').classList.add('show');
-        }
+  _SD.title  = title  || '小卡片分享';
+  _SD.desc   = desc   || title || '有人给你分享了一张卡片';
+  _SD.link   = shareLink;
+  _SD.imgUrl = imgUrl;
 
-        // 隐藏引导
-        function hideGuide() {
-            document.getElementById('guideOverlay').classList.remove('show');
-        }
+  updateOG(title, desc, imgUrl);
 
-        // 检测是否在微信内
-        function isWechat() {
-            return /MicroMessenger/i.test(navigator.userAgent);
-        }
+  // JSSDK
+  if(window.wx){
+    try{
+      wx.updateAppMessageShareData({
+        title: _SD.title, desc: _SD.desc, link: _SD.link,
+        imgUrl: _SD.imgUrl, type: 'link', dataUrl: ''
+      });
+      wx.onMenuShareAppMessage({
+        title: _SD.title, desc: _SD.desc, link: _SD.link,
+        imgUrl: _SD.imgUrl, type: 'link', dataUrl: ''
+      });
+      wx.updateTimelineShareData({
+        title: _SD.title, link: _SD.link, imgUrl: _SD.imgUrl
+      });
+    } catch(e){}
+  }
 
-        // 页面加载完成后初始化
-        window.onload = function() {
-            initPage();
-            
-            if (!isWechat()) {
-                showStatus('请在微信中打开此页面以获得最佳体验', 'info', 5000);
-            }
-            
-            // 如果URL带有参数，自动初始化
-            const params = getUrlParams();
-            if (params.title && params.desc && params.imgUrl) {
-                setTimeout(() => initShare(), 500);
-            }
-        };
+  console.log('[SD] title=' + _SD.title + ' link=' + _SD.link + ' img=' + _SD.imgUrl);
+}
 
-        // 监听输入变化，实时更新预览
-        ['title', 'desc', 'imgUrl'].forEach(id => {
-            document.getElementById(id).addEventListener('input', () => {
-                if (document.getElementById('title').value && 
-                    document.getElementById('desc').value && 
-                    document.getElementById('imgUrl').value) {
-                    setShareData();
-                }
-            });
+// ========== JSSDK 初始化 ==========
+function initJSSDK(){
+  if(!isWX) return;
+
+  var pageUrl = location.href.split('#')[0].split('?')[0];
+  // ★ 注意：ms.gstai.com 只支持 HTTP，HTTPS 不可用
+  // 微信内置浏览器不拦截 HTTP 请求，但若遇到问题可联系后端升级为 HTTPS
+  fetch('http://ms.gstai.com/phone/ajax_sign_vue.php?url=' + encodeURIComponent(pageUrl))
+    .then(function(res){ return res.json(); })
+    .then(function(data){
+      var p = data.signPackage || data;
+      if(!p.signature){ console.log('[WX] 签名获取失败:', JSON.stringify(data)); return; }
+
+      wx.config({
+        debug: false,
+        appId: p.appId,
+        timestamp: parseInt(p.timestamp),
+        nonceStr: p.nonceStr,
+        signature: p.signature,
+        jsApiList: [
+          'updateAppMessageShareData',
+          'updateTimelineShareData',
+          'onMenuShareAppMessage',
+          'onMenuShareTimeline',
+          'showOptionMenu'
+        ]
+      });
+
+      wx.ready(function(){
+        wx.showOptionMenu();
+
+        var s = window._SD;
+        wx.updateAppMessageShareData({
+          title: s.title, desc: s.desc, link: s.link,
+          imgUrl: s.imgUrl, type: 'link', dataUrl: ''
         });
-    </script>
+        wx.onMenuShareAppMessage({
+          title: s.title, desc: s.desc, link: s.link,
+          imgUrl: s.imgUrl, type: 'link', dataUrl: ''
+        });
+        wx.updateTimelineShareData({
+          title: s.title, link: s.link, imgUrl: s.imgUrl
+        });
+        wx.onMenuShareTimeline({
+          title: s.title, link: s.link, imgUrl: s.imgUrl
+        });
+
+        console.log('[WX] JSSDK ready: title=' + s.title + ' link=' + s.link);
+      });
+
+      wx.error(function(res){
+        console.error('[WX] 配置失败：', res);
+      });
+    })
+    .catch(function(e){
+      console.error('[WX] 签名接口请求失败:', e.message);
+    });
+}
+
+// ========== Mode Switch ==========
+function go(mode, data){
+  if(data){
+    App.cardData = data;
+    updateShareData(data.t, data.d || data.t, data.i || '');
+  }
+  B.setAttribute('data-theme', (data && data.th) || 'green');
+  B.setAttribute('data-mode', mode);
+
+  if(mode === 'editor'){ show($('#p-editor')); renderEditor(); }
+  else{ show($('#p-viewer')); renderViewer(); }
+}
+
+// ========== UI ==========
+function updateUI(){
+  if(isWX){ $('#wx-banner').classList.remove('hidden'); $('#not-wx').classList.add('hidden'); }
+  else{ $('#wx-banner').classList.add('hidden'); $('#not-wx').classList.remove('hidden'); }
+}
+
+// ========== Editor ==========
+function renderEditor(){
+  updateUI(); $('#share-overlay').classList.add('hidden');
+  var d = App.cardData || { t:'', d:'', i:'', th:'green' };
+  $('#tit').value = d.t || ''; $('#desc').value = d.d || ''; $('#img').value = d.i || '';
+  upCnt(); pTheme(d.th || 'green'); preview();
+}
+function pTheme(th){ $$('.dot').forEach(function(b){ b.classList.toggle('on', b.dataset.t === th) }); B.setAttribute('data-theme', th); }
+function upCnt(){ $('#tn').textContent = $('#tit').value.length; $('#dn').textContent = $('#desc').value.length; }
+function preview(){ $('#pv-t').textContent = $('#tit').value.trim() || '卡片标题'; $('#pv-d').textContent = $('#desc').value.trim() || '卡片描述...'; setImg($('#pv-img'), $('#pv-ph'), $('#img').value.trim()); }
+
+$('#form').addEventListener('submit', function(e){
+  e.preventDefault();
+  var d = { v:1, t:$('#tit').value.trim(), d:$('#desc').value.trim(), i:$('#img').value.trim(), th:B.getAttribute('data-theme')||'green' };
+  if(!d.t){ toast('⚠️ 请输入卡片标题'); $('#tit').focus(); return; }
+  App.cardData = d;
+  var hash = enc(d);
+
+  // URL 使用 hash 传数据，同时设置 og:url 保持静态
+  var url = location.origin + location.pathname + '#' + hash;
+  history.replaceState(null, '', url);
+
+  // 更新分享数据（JSSDK + JSBridge 读 _SD）
+  updateShareData(d.t, d.d || d.t, d.i || '');
+
+  if(isWX){
+    $('#share-overlay').classList.remove('hidden');
+    $('#subtitle').textContent = '点击右上角 ··· → 发送给朋友 / 朋友圈';
+    toast('👆 点击右上角 ··· 分享');
+  }else{
+    copyUrl(url).then(function(){ toast('✅ 已复制！发微信打开后点右上角分享'); }).catch(function(){ toast('⚠️ 复制失败'); });
+    $('#subtitle').textContent = '链接已复制，发微信打开后点右上角分享';
+  }
+});
+
+var _deb;
+$('#tit').addEventListener('input', function(){ upCnt(); clearTimeout(_deb); _deb = setTimeout(preview, 200); });
+$('#desc').addEventListener('input', function(){ upCnt(); clearTimeout(_deb); _deb = setTimeout(preview, 200); });
+$('#img').addEventListener('input', function(){ clearTimeout(_deb); _deb = setTimeout(preview, 200); });
+$('#dots').addEventListener('click', function(e){ var b = e.target.closest('.dot'); if(!b) return; pTheme(b.dataset.t); preview(); });
+$('#share-overlay').addEventListener('click', function(){ this.classList.add('hidden'); });
+$('#btn-copy-link').addEventListener('click', function(){ copyUrl(location.href).then(function(){ toast('✅ 已复制'); }); });
+
+function copyUrl(url){
+  if(navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(url);
+  return new Promise(function(resolve, reject){
+    var ta = document.createElement('textarea'); ta.value = url; ta.style.cssText = 'position:fixed;left:-9999px;';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); resolve(); } catch(e){ reject(e); }
+    document.body.removeChild(ta);
+  });
+}
+
+// ========== Viewer ==========
+function renderViewer(){
+  var d = App.cardData; if(!d){ go('editor'); return; }
+  $('#vw-t').textContent = d.t || ''; $('#vw-d').textContent = d.d || '';
+  setImg($('#vw-img'), $('#vw-ph'), d.i || '');
+  $('#tap-hint').classList.remove('hidden');
+  $('#vw-ft').textContent = '点击卡片 · 查看详情并共享位置';
+}
+
+// ========== 读取数据：优先 ?d= 查询参数，fallback 到 hash ==========
+function readDataFromURL(){
+  var raw = '';
+  // 检查查询参数 ?d=xxx
+  var m = location.search.match(/[?&]d=([^&]+)/);
+  if(m){ raw = decodeURIComponent(m[1]); }
+  // fallback 到 hash #xxx
+  if(!raw){ raw = location.hash.slice(1); }
+  return dec(raw);
+}
+
+// ========== Boot ==========
+$('#btn-make').addEventListener('click', function(){ App.cardData = null; go('editor'); });
+window.addEventListener('hashchange', function(){ var d = readDataFromURL(); go(d ? 'viewer' : 'editor', d || undefined); });
+
+function boot(){
+  updateUI();
+  initJSSDK();
+  var d = readDataFromURL();
+  go(d ? 'viewer' : 'editor', d || undefined);
+}
+document.addEventListener('DOMContentLoaded', boot);
+
+})();
+</script>
 </body>
 </html>
