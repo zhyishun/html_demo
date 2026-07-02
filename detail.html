@@ -149,9 +149,6 @@
 
         // ========= 渲染 =========
         function showCityLevel(raw) {
-            console.log('*** showCityLevel 被调用了 ***');
-            console.log('原始数据:', JSON.stringify(raw));
-
             addressDisplay.classList.remove('loading-text', 'error-text');
             cardTitle.textContent = '📍 您当前的位置（城市级 · IP定位）';
 
@@ -165,20 +162,13 @@
             if (prov) parts.push(prov);
             if (city) parts.push(city);
             if (dist) parts.push(dist);
-            var displayAddr = parts.join(' ') || '定位成功';
-            addressDisplay.textContent = displayAddr;
+            addressDisplay.textContent = parts.join(' ') || '定位成功';
 
             var tags = [];
             if (prov) tags.push(prov);
             if (city) tags.push(city);
             if (dist) tags.push(dist);
             if (adcd) tags.push('编码: ' + adcd);
-            if (tags.length === 0) {
-                // 没解析到任何字段 → 把 keys 和原始数据一起显示方便排查
-                var keys = Object.keys(raw).join(', ');
-                tags.push('字段: ' + keys);
-                tags.push('Raw: ' + JSON.stringify(raw).substring(0, 300));
-            }
             detailDisplay.innerHTML = tags.map(function(t) {
                 return '<span>' + t + '</span>';
             }).join('');
