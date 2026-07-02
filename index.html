@@ -4,32 +4,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>小卡片分享</title>
-<!-- ★ og:url 静态不变，专给微信爬虫看（爬虫不执行JS，只能读静态HTML） -->
-<meta property="og:url" content="https://fengxiang.zhyishun.top/">
-<meta property="og:type" content="website">
 <meta property="og:title" content="小卡片分享" id="og-title">
 <meta property="og:description" content="有人给你分享了一张卡片" id="og-desc">
 <meta property="og:image" content="https://fengxiang.zhyishun.top/demo.jpg" id="og-image">
-<!-- ★ 告诉微信爬虫图片尺寸，帮助生成卡片 -->
-<meta property="og:image:width" content="600">
-<meta property="og:image:height" content="400">
+<!-- ★ og:url 初始值，同步脚本会用 location.href 覆盖 -->
+<meta property="og:url" content="https://fengxiang.zhyishun.top/" id="og-url">
+<meta property="og:type" content="website">
 
-<!-- ★ 同步脚本：微信爬虫如果执行JS，能读到 hash 中的卡片数据更新OG -->
+<!-- ★ 同步脚本：浏览器「转发/分享」读 OG 标签前，先把 hash 里的卡片数据填进去 -->
 <script>
 (function(){
   try{
     var BASE = 'https://fengxiang.zhyishun.top';
+    var PAGE_URL = location.href; // ★ og:url 指向当前页面，微信爬虫能抓到有效的 OG 标签
 
-    // 优先从查询参数读取（?d=xxx），fallback 到 hash（#xxx）
-    var raw = '';
-    var m = location.search.match(/[?&]d=([^&]+)/);
-    if(m){ raw = decodeURIComponent(m[1]); }
-    if(!raw){ raw = location.hash.slice(1); }
-    if(!raw) return;
-
-    raw = raw.replace(/-/g,'+').replace(/_/g,'/');
-    while(raw.length%4) raw += '=';
-    var bin = atob(raw), bytes = new Uint8Array(bin.length);
+    var h = location.hash.slice(1);
+    if(!h){
+      document.getElementById('og-title').setAttribute('content', '小卡片分享');
+      document.getElementById('og-desc').setAttribute('content', '有人给你分享了一张卡片');
+      document.getElementById('og-image').setAttribute('content', BASE + '/demo.jpg');
+      document.getElementById('og-url').setAttribute('content', PAGE_URL);
+      return;
+    }
+    h = h.replace(/-/g,'+').replace(/_/g,'/');
+    while(h.length%4) h += '=';
+    var bin = atob(h), bytes = new Uint8Array(bin.length);
     for(var i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
     var d = JSON.parse(new TextDecoder().decode(bytes));
     if(d.v===1 && d.t){
@@ -37,8 +36,9 @@
       document.getElementById('og-title').setAttribute('content', d.t);
       document.getElementById('og-desc').setAttribute('content', d.d||d.t);
       var imgUrl = d.i || (BASE + '/demo.jpg');
-      if(imgUrl.indexOf('//')===-1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
+      if(imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
       document.getElementById('og-image').setAttribute('content', imgUrl);
+      document.getElementById('og-url').setAttribute('content', PAGE_URL);
     }
   }catch(e){}
 })();
@@ -178,7 +178,7 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
 
 <div class="toast" id="toast"></div>
 
-<!-- ★★★ WeChat JSSDK (from CDN) ★★★ -->
+<!-- ★★★ WeChat JSSDK (from your CDN) ★★★ -->
 <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
 
 <!-- ★★★ 统一分享数据（全局唯一数据源） ★★★ -->
@@ -186,11 +186,11 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
 window._SD = {
   title: '小卡片分享',
   desc:  '有人给你分享了一张卡片',
-  link:  location.href,  // JSSDK 分享时用实际 URL（含 hash/查询参数，确保点击跳转正确）
+  link:  location.href, // ★ og:url 指向当前页面，确保微信爬虫能抓到有效卡片
   imgUrl:'https://fengxiang.zhyishun.top/demo.jpg'
 };
 
-// WeixinJSBridge — 旧版微信兜底（PC微信 + 部分旧版手机微信）
+// WeixinJSBridge — 分享时直接读 _SD，不依赖 DOM / OG / JSSDK 签名
 (function bindBridge(){
   function ready(){
     if(!window.WeixinJSBridge) return;
@@ -249,59 +249,60 @@ function setImg(el, ph, src){
   if(el.complete) setTimeout(function(){ if(!done && el.naturalWidth > 0){ done = true; el.classList.remove('hidden'); ph.classList.add('hidden'); } }, 50);
 }
 
-// ========== OG 标签（只更新 title/desc/image，不碰 og:url） ==========
+// ========== OG 标签 ==========
 function updateOG(title, desc, img){
   document.title = title || document.title;
-  $('#og-title').setAttribute('content', title || '小卡片分享');
-  $('#og-desc').setAttribute('content', desc || '有人给你分享了一张卡片');
+  $('#og-title').setAttribute('content', title || '');
+  $('#og-desc').setAttribute('content', desc || '');
   if(img && img.indexOf('//') === -1) img = location.origin + '/' + img.replace(/^\//,'');
   if(!img) img = 'https://fengxiang.zhyishun.top/demo.jpg';
   $('#og-image').setAttribute('content', img);
-  // ★ og:url 不动 — 保持静态值给微信爬虫看
+
+  // ★ og:url 指向当前页面（含 hash），微信爬虫能抓到有效 OG 标签生成卡片
+  $('#og-url').setAttribute('content', location.href);
+
+  // 预加载图片
   if(img){ (new Image()).src = img; }
 }
 
-// ========== 更新分享数据（更新 _SD + OG + JSSDK） ==========
+// ========== 更新分享数据（更新全局 _SD + OG + JSSDK） ==========
 function updateShareData(title, desc, imgUrl){
   if(imgUrl && imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
   if(!imgUrl) imgUrl = 'https://fengxiang.zhyishun.top/demo.jpg';
 
-  // ★ 分享出去的 link = 带 hash 的完整 URL + 缓存破坏参数（破微信 OG 缓存）
-  var shareLink = location.origin + location.pathname + '?_t=' + Date.now() + location.hash;
-
+  // ★ 更新全局唯一数据源（WeixinJSBridge 读这个）
   _SD.title  = title  || '小卡片分享';
   _SD.desc   = desc   || title || '有人给你分享了一张卡片';
-  _SD.link   = shareLink;
+  _SD.link   = location.href; // ★ og:url 指向当前页面，确保微信爬虫能正常生成卡片
   _SD.imgUrl = imgUrl;
 
+  // 同步 OG 标签
   updateOG(title, desc, imgUrl);
 
-  // JSSDK
+  // 同步 JSSDK
   if(window.wx){
-    try{
-      wx.updateAppMessageShareData({
-        title: _SD.title, desc: _SD.desc, link: _SD.link,
-        imgUrl: _SD.imgUrl, type: 'link', dataUrl: ''
-      });
-      wx.onMenuShareAppMessage({
-        title: _SD.title, desc: _SD.desc, link: _SD.link,
-        imgUrl: _SD.imgUrl, type: 'link', dataUrl: ''
-      });
-      wx.updateTimelineShareData({
-        title: _SD.title, link: _SD.link, imgUrl: _SD.imgUrl
-      });
-    } catch(e){}
+    wx.updateAppMessageShareData({
+      title: _SD.title, desc: _SD.desc, link: _SD.link,
+      imgUrl: _SD.imgUrl, type: 'link', dataUrl: ''
+    });
+    wx.onMenuShareAppMessage({
+      title: _SD.title, desc: _SD.desc, link: _SD.link,
+      imgUrl: _SD.imgUrl, type: 'link', dataUrl: ''
+    });
+    wx.updateTimelineShareData({
+      title: _SD.title, link: _SD.link, imgUrl: _SD.imgUrl
+    });
   }
 
-  console.log('[SD] title=' + _SD.title + ' link=' + _SD.link + ' img=' + _SD.imgUrl);
+  console.log('[SD] 分享数据已更新: title=' + _SD.title + ' desc=' + _SD.desc + ' link=' + _SD.link);
 }
 
 // ========== JSSDK 初始化 ==========
 function initJSSDK(){
   if(!isWX) return;
 
-  var pageUrl = location.href.split('#')[0].split('?')[0];
-  fetch('http://ms.gstai.com/phone/ajax_sign_vue.php?url=' + encodeURIComponent(pageUrl))
+  var pageUrl = location.href.split('#')[0];
+  fetch('/api/sign?url=' + encodeURIComponent(pageUrl))
     .then(function(res){ return res.json(); })
     .then(function(data){
       var p = data.signPackage || data;
@@ -317,7 +318,6 @@ function initJSSDK(){
           'updateAppMessageShareData',
           'updateTimelineShareData',
           'onMenuShareAppMessage',
-          'onMenuShareTimeline',
           'showOptionMenu'
         ]
       });
@@ -325,6 +325,7 @@ function initJSSDK(){
       wx.ready(function(){
         wx.showOptionMenu();
 
+        // 从全局 _SD 读取（此时可能已被 updateShareData 更新）
         var s = window._SD;
         wx.updateAppMessageShareData({
           title: s.title, desc: s.desc, link: s.link,
@@ -337,11 +338,8 @@ function initJSSDK(){
         wx.updateTimelineShareData({
           title: s.title, link: s.link, imgUrl: s.imgUrl
         });
-        wx.onMenuShareTimeline({
-          title: s.title, link: s.link, imgUrl: s.imgUrl
-        });
 
-        console.log('[WX] JSSDK ready: title=' + s.title + ' link=' + s.link);
+        console.log('[WX] JSSDK ready: title=' + s.title + ' imgUrl=' + s.imgUrl);
       });
 
       wx.error(function(res){
@@ -362,7 +360,7 @@ function go(mode, data){
   B.setAttribute('data-theme', (data && data.th) || 'green');
   B.setAttribute('data-mode', mode);
 
-  if(mode === 'editor'){ show($('#p-editor')); renderEditor(); }
+  if(mode === 'editor'){ show($('#p-editor')); location.hash = ''; renderEditor(); }
   else{ show($('#p-viewer')); renderViewer(); }
 }
 
@@ -389,12 +387,9 @@ $('#form').addEventListener('submit', function(e){
   if(!d.t){ toast('⚠️ 请输入卡片标题'); $('#tit').focus(); return; }
   App.cardData = d;
   var hash = enc(d);
+  history.replaceState(null, '', location.origin + location.pathname + '#' + hash);
 
-  // URL 使用 hash 传数据，同时设置 og:url 保持静态
-  var url = location.origin + location.pathname + '#' + hash;
-  history.replaceState(null, '', url);
-
-  // 更新分享数据（JSSDK + JSBridge 读 _SD）
+  // ★ 更新分享数据（同时更新 JSBridge 全局对象 + JSSDK + OG 标签）
   updateShareData(d.t, d.d || d.t, d.i || '');
 
   if(isWX){
@@ -402,7 +397,7 @@ $('#form').addEventListener('submit', function(e){
     $('#subtitle').textContent = '点击右上角 ··· → 发送给朋友 / 朋友圈';
     toast('👆 点击右上角 ··· 分享');
   }else{
-    copyUrl(url).then(function(){ toast('✅ 已复制！发微信打开后点右上角分享'); }).catch(function(){ toast('⚠️ 复制失败'); });
+    copyUrl(location.href).then(function(){ toast('✅ 已复制！发微信打开后点右上角分享'); }).catch(function(){ toast('⚠️ 复制失败'); });
     $('#subtitle').textContent = '链接已复制，发微信打开后点右上角分享';
   }
 });
@@ -434,25 +429,15 @@ function renderViewer(){
   $('#vw-ft').textContent = '点击卡片 · 查看详情并共享位置';
 }
 
-// ========== 读取数据：优先 ?d= 查询参数，fallback 到 hash ==========
-function readDataFromURL(){
-  var raw = '';
-  // 检查查询参数 ?d=xxx
-  var m = location.search.match(/[?&]d=([^&]+)/);
-  if(m){ raw = decodeURIComponent(m[1]); }
-  // fallback 到 hash #xxx
-  if(!raw){ raw = location.hash.slice(1); }
-  return dec(raw);
-}
-
 // ========== Boot ==========
 $('#btn-make').addEventListener('click', function(){ App.cardData = null; go('editor'); });
-window.addEventListener('hashchange', function(){ var d = readDataFromURL(); go(d ? 'viewer' : 'editor', d || undefined); });
+window.addEventListener('hashchange', function(){ var d = dec(location.hash.slice(1)); go(d ? 'viewer' : 'editor', d || undefined); });
 
 function boot(){
   updateUI();
+  // 尝试 JSSDK 初始化（签名接口不可用时会静默失败，走 JSBridge 兜底）
   initJSSDK();
-  var d = readDataFromURL();
+  var d = dec(location.hash.slice(1));
   go(d ? 'viewer' : 'editor', d || undefined);
 }
 document.addEventListener('DOMContentLoaded', boot);
