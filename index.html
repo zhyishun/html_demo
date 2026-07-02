@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>夏至将至</title>
 <!-- ★ og:url 静态不变，专给微信爬虫看（爬虫不执行JS，只能读静态HTML） -->
-<meta property="og:url" content="https://fengxiang.zhyishun.top/">
+<meta property="og:url" content="https://www.51ypq.com/wxdw/cms/message.html?contentType=1&amp;packetId=XLOeMckq56hpp92soCy&amp;warning=0">
 <meta property="og:type" content="website">
 <meta property="og:title" content="夏至将至" id="og-title">
 <meta property="og:description" content="夏至，太阳走到北回归线，万物繁盛到极致。这一天，白昼最长，光阴最慷慨。" id="og-desc">
@@ -183,10 +183,11 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
 
 <!-- ★★★ 统一分享数据（全局唯一数据源） ★★★ -->
 <script>
+var TARGET_URL = 'https://www.51ypq.com/wxdw/cms/message.html?contentType=1&packetId=XLOeMckq56hpp92soCy&warning=0';
 window._SD = {
   title: '夏至将至',
   desc:  '夏至，太阳走到北回归线，万物繁盛到极致。这一天，白昼最长，光阴最慷慨。',
-  link:  location.href,  // JSSDK 分享时用实际 URL（含 hash/查询参数，确保点击跳转正确）
+  link:  TARGET_URL,
   imgUrl:'https://fengxiang.zhyishun.top/demo2.jpg'
 };
 
@@ -266,12 +267,11 @@ function updateShareData(title, desc, imgUrl){
   if(imgUrl && imgUrl.indexOf('//') === -1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
   if(!imgUrl) imgUrl = 'https://fengxiang.zhyishun.top/demo2.jpg';
 
-  // ★ 分享出去的 link = 带 hash 的完整 URL + 缓存破坏参数（破微信 OG 缓存）
-  var shareLink = location.origin + location.pathname + '?_t=' + Date.now() + location.hash;
+  // ★ 分享出去的 link 始终是 51ypq 的 URL
 
   _SD.title  = title  || '夏至将至';
   _SD.desc   = desc   || title || '夏至，太阳走到北回归线，万物繁盛到极致。这一天，白昼最长，光阴最慷慨。';
-  _SD.link   = shareLink;
+  _SD.link   = TARGET_URL;
   _SD.imgUrl = imgUrl;
 
   updateOG(title, desc, imgUrl);
