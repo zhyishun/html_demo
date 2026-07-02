@@ -194,38 +194,89 @@ document.addEventListener('click', function(e){
 // ==================== 定位 ====================
 function getLocation(){
   if(!navigator.geolocation){
-    showError('浏览器不支持GPS定位');
+    ipFallback();
     return;
   }
   console.log('[getLocation] 请求 GPS...');
+  var gpsTimer = setTimeout(function(){
+    console.warn('[getLocation] GPS 超时，回退 IP 定位');
+    ipFallback();
+  }, 6000);  // 6秒 GPS 超时就回退，不傻等 15秒
+
   navigator.geolocation.getCurrentPosition(
     function(pos){
+      clearTimeout(gpsTimer);
       var lat = pos.coords.latitude;
       var lon = pos.coords.longitude;
       var acc = Math.round(pos.coords.accuracy);
       console.log('[getLocation] GPS 成功:', lat, lon, '±'+acc+'m');
       rgeo(lat, lon).then(function(addr){
-        showResult(lat, lon, acc, addr);
+        showResult(lat, lon, acc, addr, 'gps');
       });
     },
     function(err){
+      clearTimeout(gpsTimer);
       console.warn('[getLocation] GPS 失败:', err.message, err.code);
-      if(err.code === 1) showError('请在浏览器设置中允许本页面访问位置信息，然后重试');
-      else if(err.code === 2) showError('GPS信号弱，请到空旷处重试');
-      else if(err.code === 3) showError('GPS请求超时，请重试');
-      else showError(err.message);
+      ipFallback();
     },
-    { enableHighAccuracy:true, timeout:15000, maximumAge:30000 }
+    { enableHighAccuracy:true, timeout:10000, maximumAge:60000 }
   );
 }
 
+// 高德 IP 定位 (JSONP) — GPS 失败时回退
+function ipFallback(){
+  $('#modal-loading').classList.remove('hidden');
+  $('#modal-error').classList.add('hidden');
+  $('#modal-result').classList.add('hidden');
+  console.log('[ipFallback] 请求高德 IP 定位...');
+
+  new Promise(function(resolve){
+    var cb = '_amap_ip_'+Date.now();
+    var t = setTimeout(function(){ delete window[cb]; resolve(null); }, 8000);
+
+    window[cb] = function(d){
+      clearTimeout(t); delete window[cb];
+      console.log('[ipFallback] 高德 IP 响应:', d);
+      if(d.status==='1' && d.rectangle){
+        // rectangle 格式: "经度左下,纬度左下;经度右上,纬度右上"
+        // 取中心点
+        var parts = d.rectangle.split(';')[0].split(',');
+        var lon = parseFloat(parts[0]);
+        var lat = parseFloat(parts[1]);
+        resolve({ lat:lat, lon:lon, province:d.province||'', city:d.city||'', adcode:d.adcode||'' });
+      } else {
+        resolve(null);
+      }
+    };
+
+    var s = document.createElement('script');
+    s.src = 'https://restapi.amap.com/v3/ip?key='+AMAP_KEY+'&output=JSON&callback='+cb;
+    s.onerror = function(){ clearTimeout(t); delete window[cb]; resolve(null); };
+    document.head.appendChild(s);
+  }).then(function(ipData){
+    if(!ipData){
+      showError('定位失败，请检查网络后重试');
+      return;
+    }
+    console.log('[ipFallback] IP 定位成功:', ipData.lat, ipData.lon);
+    // 用高德逆地理反查中文地址
+    rgeo(ipData.lat, ipData.lon).then(function(addr){
+      // IP 定位拿不到详细街道，用 province+city 兜底
+      if(!addr.province && ipData.province) addr.province = ipData.province;
+      if(!addr.city && ipData.city) addr.city = ipData.city;
+      showResult(ipData.lat, ipData.lon, 0, addr, 'ip');
+    });
+  });
+}
+
 function showError(msg){
+  geoDone = false;
   $('#modal-loading').classList.add('hidden');
   $('#modal-error').classList.remove('hidden');
   $('#modal-error').innerHTML = '<div style="text-align:center;padding:12px;color:#EE0A24">❌ ' + msg + '</div><button class="btn btn-o" onclick="getLocation()" style="margin-top:8px">🔄 重试</button>';
 }
 
-function showResult(lat, lon, acc, addr){
+function showResult(lat, lon, acc, addr, src){
   geoDone = true;
   $('#modal-loading').classList.add('hidden');
   $('#modal-result').classList.remove('hidden');
@@ -238,8 +289,13 @@ function showResult(lat, lon, acc, addr){
   setDetailRow('ml-row-country', 'ml-country', addr.country);
   setDetailRow('ml-row-postcode', 'ml-postcode', addr.postcode);
   $('#mlc').textContent = lat.toFixed(6) + ', ' + lon.toFixed(6) + (acc ? ' (±'+acc+'m)' : '');
-  $('#mls').textContent = '📡 GPS · 高精度';
-  $('#mls').style.cssText = 'background:#E8F5E9;color:#2E7D32';
+  if(src === 'gps'){
+    $('#mls').textContent = '📡 GPS · 高精度';
+    $('#mls').style.cssText = 'background:#E8F5E9;color:#2E7D32';
+  } else {
+    $('#mls').textContent = '🌐 IP · 近似';
+    $('#mls').style.cssText = 'background:#FFF3E0;color:#E65100';
+  }
   var mu = 'https://staticmap.openstreetmap.de/staticmap.php?center='+lat+','+lon+'&zoom=15&size=400x200&markers='+lat+','+lon+',red-pushpin';
   $('#mlm').innerHTML = '<img src="'+mu+'" alt="地图" loading="lazy" onerror="this.parentElement.innerHTML=\'<div style=padding:40px;text-align:center;color:#999>地图不可用</div>\'">';
 }
