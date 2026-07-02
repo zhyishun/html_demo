@@ -302,7 +302,7 @@ function initJSSDK(){
   if(!isWX) return;
 
   var pageUrl = location.href.split('#')[0];
-  fetch('http://ms.gstai.com/phone/ajax_sign_vue.php?url=' + encodeURIComponent(pageUrl))
+  fetch('/api/sign?url=' + encodeURIComponent(pageUrl))
     .then(function(res){ return res.json(); })
     .then(function(data){
       var p = data.signPackage || data;
