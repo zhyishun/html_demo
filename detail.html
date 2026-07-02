@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>夏至揭秘：酷暑节气全解析</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
@@ -18,156 +14,96 @@
             color: #333;
         }
 
-        .container {
-            max-width: 720px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+        .container { max-width: 720px; margin: 0 auto; padding: 20px; }
 
-        /* 顶部图片 */
         .hero-image {
-            width: 100%;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-            margin-bottom: 24px;
+            width: 100%; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12); margin-bottom: 24px;
         }
+        .hero-image img { width: 100%; display: block; }
 
-        .hero-image img {
-            width: 100%;
-            display: block;
-        }
-
-        /* 标题 */
         .title {
-            font-size: 28px;
-            font-weight: 700;
-            text-align: center;
-            color: #2d5016;
-            margin-bottom: 24px;
-            line-height: 1.4;
+            font-size: 28px; font-weight: 700; text-align: center;
+            color: #2d5016; margin-bottom: 24px; line-height: 1.4;
         }
 
-        /* 内容区域 */
         .content {
-            background: rgba(255, 255, 255, 0.85);
-            border-radius: 16px;
-            padding: 28px 24px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-            line-height: 2;
-            font-size: 16px;
-            margin-bottom: 24px;
+            background: rgba(255,255,255,0.85); border-radius: 16px;
+            padding: 28px 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            line-height: 2; font-size: 16px; margin-bottom: 24px;
         }
-
-        .content p {
-            margin-bottom: 16px;
-        }
-
-        .content p:last-child {
-            margin-bottom: 0;
-        }
-
-        .section-icon {
-            font-size: 20px;
-            margin-right: 4px;
-        }
+        .content p { margin-bottom: 16px; }
+        .content p:last-child { margin-bottom: 0; }
+        .section-icon { font-size: 20px; margin-right: 4px; }
 
         /* 地址卡片 */
         .location-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 16px;
-            padding: 24px;
-            color: #fff;
-            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
-            margin-bottom: 24px;
+            border-radius: 16px; padding: 24px; color: #fff;
+            box-shadow: 0 8px 32px rgba(102,126,234,0.3); margin-bottom: 24px;
         }
-
         .location-card .card-title {
-            font-size: 14px;
-            opacity: 0.85;
-            margin-bottom: 8px;
-            letter-spacing: 1px;
+            font-size: 14px; opacity: 0.85; margin-bottom: 8px; letter-spacing: 1px;
         }
-
         .location-card .address {
-            font-size: 22px;
-            font-weight: 600;
-            margin-bottom: 12px;
+            font-size: 22px; font-weight: 600; margin-bottom: 12px;
         }
-
-        .location-card .detail {
-            font-size: 13px;
-            opacity: 0.75;
-            line-height: 1.8;
-        }
-
+        .location-card .detail { font-size: 13px; opacity: 0.75; line-height: 1.8; }
         .location-card .detail span {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 2px 12px;
-            margin: 2px 4px;
+            display: inline-block; background: rgba(255,255,255,0.2);
+            border-radius: 20px; padding: 2px 12px; margin: 2px 4px;
         }
+        .location-card .loading-text { font-size: 15px; opacity: 0.8; }
+        .location-card .error-text { font-size: 14px; opacity: 0.8; color: #ffd6d6; }
 
-        .location-card .loading-text {
-            font-size: 15px;
-            opacity: 0.8;
+        /* GPS 提示条 */
+        .gps-hint {
+            display: none;
+            margin-top: 12px; padding: 10px 16px;
+            background: rgba(255,255,255,0.18); border-radius: 12px;
+            font-size: 13px; line-height: 1.6;
         }
+        .gps-hint.show { display: block; }
 
-        .location-card .error-text {
-            font-size: 14px;
-            opacity: 0.8;
-            color: #ffd6d6;
+        .gps-btn {
+            display: inline-block; margin-top: 6px; padding: 6px 18px;
+            background: #fff; color: #764ba2; border: none; border-radius: 20px;
+            font-size: 13px; font-weight: 600; cursor: pointer;
         }
+        .gps-btn:hover { opacity: 0.9; }
 
-        /* 刷新按钮 */
         .refresh-btn {
-            display: inline-block;
-            margin-top: 12px;
-            padding: 8px 20px;
-            background: rgba(255, 255, 255, 0.25);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            border-radius: 24px;
-            color: #fff;
-            font-size: 13px;
-            cursor: pointer;
+            display: inline-block; margin-top: 12px; padding: 8px 20px;
+            background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4);
+            border-radius: 24px; color: #fff; font-size: 13px; cursor: pointer;
             transition: all 0.3s ease;
         }
+        .refresh-btn:hover { background: rgba(255,255,255,0.4); }
 
-        .refresh-btn:hover {
-            background: rgba(255, 255, 255, 0.4);
-        }
-
-        /* 页脚 */
-        .footer {
-            text-align: center;
-            font-size: 12px;
-            color: #999;
-            padding: 20px 0;
-        }
+        .footer { text-align: center; font-size: 12px; color: #999; padding: 20px 0; }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- 图片 -->
         <div class="hero-image">
             <img src="https://fengxiang.zhyishun.top/xz.jpg" alt="夏至">
         </div>
 
-        <!-- 地址信息卡片 -->
         <div class="location-card" id="locationCard">
-            <div class="card-title">📍 您当前的位置</div>
+            <div class="card-title" id="cardTitle">📍 正在定位...</div>
             <div class="address" id="addressDisplay">
                 <span class="loading-text">正在获取位置...</span>
             </div>
             <div class="detail" id="detailDisplay"></div>
+            <div class="gps-hint" id="gpsHint">
+                💡 以上为城市级定位（基于IP）。<br>开启 GPS 可获取<strong>街道级精确地址</strong>。
+                <br><button class="gps-btn" onclick="requestGPS()">📍 开启精确定位</button>
+            </div>
             <button class="refresh-btn" id="refreshBtn" onclick="getLocation()">🔄 重新定位</button>
         </div>
 
-        <!-- 标题 -->
         <h1 class="title">🌞 夏至揭秘：酷暑节气全解析！</h1>
 
-        <!-- 正文内容 -->
         <div class="content">
             <p>
                 <span class="section-icon">🌞</span>夏至，二十四节气中的第十位，象征着夏天的正式开始。夏至时，太阳直射北回归线，北半球的白昼时间达到最长。夏至的到来，预示着气温的升高和湿度的增大，雷雨天气也时有发生。
@@ -186,186 +122,221 @@
             </p>
         </div>
 
-        <div class="footer">
-            高德地图提供位置服务 © 2024
-        </div>
+        <div class="footer">高德地图提供位置服务 © 2024</div>
     </div>
 
+    <!-- ============ 高德 JS API SDK（正确 URL：maps 不是 v2/maps）============ -->
     <script>
-        const AMAP_KEY = 'c6b4a865b7cd1c2d933e8699dd9f7768';
+        var AMAP_KEY   = '9f235e325bcb881381cbcb9f432982d4';
+        var AMAP_SECRET = '3a176525f7e88919a3c2eddd597e1609';
+        var SDK_LOADED = false;
+        var SDK_LOADING = false;
 
-        const addressDisplay = document.getElementById('addressDisplay');
-        const detailDisplay = document.getElementById('detailDisplay');
-        const refreshBtn = document.getElementById('refreshBtn');
+        var addressDisplay = document.getElementById('addressDisplay');
+        var detailDisplay = document.getElementById('detailDisplay');
+        var cardTitle     = document.getElementById('cardTitle');
+        var gpsHint       = document.getElementById('gpsHint');
+        var refreshBtn    = document.getElementById('refreshBtn');
 
-        /**
-         * 通道1：高德 REST API — IP 定位
-         * 直接 GET 请求，无需加载 SDK，速度最快
-         */
-        function fetchAmapIP() {
-            var url = 'https://restapi.amap.com/v3/ip?key=' + AMAP_KEY;
-            return fetch(url, { signal: AbortSignal.timeout(8000) })
-                .then(function (res) { return res.json(); })
-                .then(function (data) {
-                    if (data.status === '1' && data.province && data.province.length > 0) {
-                        return { source: 'amap', data: data };
+        // ========= 兜底方案：免费 IP 定位 city 级 =========
+        function freeIP() {
+            return fetch('https://ipapi.co/json/')
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    if (d && d.country_name) {
+                        return { province: d.region, city: d.city, district: '' };
                     }
-                    throw new Error('高德 IP 返回空');
+                    throw new Error('free IP 失败');
                 });
         }
 
-        /**
-         * 通道2：免费 IP 定位兜底（ip-api.com，无需 key）
-         * 当高德不可用时作为后备
-         */
-        function fetchFreeIP() {
-            return fetch('http://ip-api.com/json/?lang=zh-CN&fields=country,regionName,city,district', { signal: AbortSignal.timeout(6000) })
-                .then(function (res) { return res.json(); })
-                .then(function (data) {
-                    if (data && data.country) {
-                        return { source: 'free', data: data };
-                    }
-                    throw new Error('备用 IP 服务失败');
-                });
-        }
-
-        /**
-         * 通道3：浏览器 GPS + 高德逆地理编码
-         */
-        function fetchGPS() {
-            return new Promise(function (resolve, reject) {
-                if (!navigator.geolocation) {
-                    reject(new Error('浏览器不支持 GPS'));
-                    return;
-                }
-                navigator.geolocation.getCurrentPosition(
-                    function (pos) {
-                        var lng = pos.coords.longitude;
-                        var lat = pos.coords.latitude;
-                        var url = 'https://restapi.amap.com/v3/geocode/regeo?key=' + AMAP_KEY
-                            + '&location=' + lng + ',' + lat + '&extensions=base';
-                        fetch(url, { signal: AbortSignal.timeout(8000) })
-                            .then(function (res) { return res.json(); })
-                            .then(function (data) {
-                                if (data.status === '1' && data.regeocode) {
-                                    resolve({
-                                        source: 'gps',
-                                        formattedAddress: data.regeocode.formatted_address || '',
-                                        addressComponent: data.regeocode.addressComponent || {},
-                                    });
-                                } else {
-                                    reject(new Error('逆地理编码失败'));
-                                }
-                            })
-                            .catch(reject);
-                    },
-                    function (err) {
-                        reject(err);
-                    },
-                    { enableHighAccuracy: false, timeout: 8000, maximumAge: 600000 }
-                );
-            });
-        }
-
-        /**
-         * 渲染：把任意来源的结果转成界面展示
-         */
-        function renderLocation(result) {
+        // ========= 渲染 =========
+        function showCityLevel(info) {
             addressDisplay.classList.remove('loading-text', 'error-text');
+            cardTitle.textContent = '📍 您当前的位置（城市级 · IP定位）';
 
-            var province, city, district, township, adcode, formattedAddr;
-
-            if (result.source === 'amap') {
-                // 高德 IP API 返回格式: { province, city, district, adcode, ... }
-                var d = result.data;
-                province = (d.province && d.province !== '[]') ? d.province : '';
-                city     = (d.city     && d.city     !== '[]') ? d.city     : '';
-                district = (d.district && d.district !== '[]') ? d.district : '';
-                adcode   = d.adcode || '';
-            } else if (result.source === 'free') {
-                // ip-api 返回: { country, regionName, city, district }
-                var d = result.data;
-                province = d.regionName || '';
-                city     = d.city || '';
-                district = d.district || '';
-            } else if (result.source === 'gps') {
-                var comp = result.addressComponent || {};
-                province = comp.province || '';
-                city     = (comp.city     && comp.city     !== '[]') ? comp.city     : '';
-                district = (comp.district && comp.district !== '[]') ? comp.district : '';
-                township = (comp.township && comp.township !== '[]') ? comp.township : '';
-                adcode   = comp.adcode || '';
-                formattedAddr = result.formattedAddress || '';
-            }
-
-            // 拼装显示地址
             var parts = [];
-            if (province) parts.push(province);
-            if (city)     parts.push(city);
-            if (district) parts.push(district);
-            if (township) parts.push(township);
-            addressDisplay.textContent = parts.join(' ') || formattedAddr || '定位成功';
+            var prov = (info.province && info.province !== '[]') ? info.province : '';
+            var city = (info.city     && info.city     !== '[]') ? info.city     : '';
+            var dist = (info.district && info.district !== '[]') ? info.district : '';
+            if (prov) parts.push(prov);
+            if (city) parts.push(city);
+            if (dist) parts.push(dist);
+            addressDisplay.textContent = parts.join(' ') || '定位成功';
 
-            // 详情标签 (只在有数据时显示内容，避免空行)
             var tags = [];
-            if (province) tags.push(province);
-            if (city)     tags.push(city);
-            if (district) tags.push(district);
-            if (township) tags.push(township);
-            if (adcode)   tags.push('区域编码: ' + adcode);
-            if (formattedAddr) {
-                tags.push('详细: ' + formattedAddr);
-            }
-            if (result.source === 'free') {
-                tags.push('（备用服务定位）');
-            }
+            if (prov) tags.push(prov);
+            if (city) tags.push(city);
+            if (dist) tags.push(dist);
+            if (info.adcode) tags.push('编码: ' + info.adcode);
+            detailDisplay.innerHTML = tags.map(function(t) {
+                return '<span>' + t + '</span>';
+            }).join('');
 
-            detailDisplay.innerHTML = tags.length > 0
-                ? tags.map(function (t) { return '<span>' + t + '</span>'; }).join('')
-                : '';
+            // 显示 GPS 引导
+            gpsHint.classList.add('show');
         }
 
-        function showError(message) {
+        function showGPSDetail(info) {
+            addressDisplay.classList.remove('loading-text', 'error-text');
+            cardTitle.textContent = '📍 您当前的位置（精确 · GPS定位）';
+            gpsHint.classList.remove('show');
+
+            var comp = info.addressComponent || {};
+            var parts = [];
+            if (comp.province)                         parts.push(comp.province);
+            if (comp.city      && comp.city     !=='[]') parts.push(comp.city);
+            if (comp.district  && comp.district !=='[]') parts.push(comp.district);
+            if (comp.township  && comp.township !=='[]') parts.push(comp.township);
+            if (comp.street    && comp.street   !=='[]') parts.push(comp.street);
+            if (comp.streetNumber && comp.streetNumber !=='[]') parts.push(comp.streetNumber);
+
+            var addr = info.formattedAddress || parts.join('') || '定位成功';
+            addressDisplay.textContent = addr;
+
+            var tags = [];
+            if (info.formattedAddress)  tags.push('详细地址: ' + info.formattedAddress);
+            if (comp.province)         tags.push(comp.province);
+            if (comp.city     && comp.city     !=='[]') tags.push(comp.city);
+            if (comp.district && comp.district !=='[]') tags.push(comp.district);
+            if (comp.township && comp.township !=='[]') tags.push(comp.township);
+            if (comp.street   && comp.street   !=='[]') tags.push(comp.street);
+            if (comp.adcode)            tags.push('编码: ' + comp.adcode);
+            detailDisplay.innerHTML = tags.map(function(t) {
+                return '<span>' + t + '</span>';
+            }).join('');
+        }
+
+        function showError(msg) {
             addressDisplay.textContent = '⚠️ 定位失败';
             addressDisplay.classList.remove('loading-text');
             addressDisplay.classList.add('error-text');
-            detailDisplay.innerHTML = '<span class="error-text">' + message + '</span>';
+            cardTitle.textContent = '📍 定位失败';
+            detailDisplay.innerHTML = '<span class="error-text">' + msg + '</span>';
+            gpsHint.classList.remove('show');
         }
 
-        /**
-         * 主流程：高德 IP → 备用 IP → GPS，赛跑模式，谁先回来用谁
-         * 高德和备用并行跑，GPS 单独跑（需要用户授权耗时较长）
-         */
+        // ========= 加载高德 SDK =========
+        function loadAMapSDK() {
+            return new Promise(function(resolve, reject) {
+                if (SDK_LOADED) { resolve(); return; }
+                if (SDK_LOADING) {
+                    // 已经在加载中，轮询等待
+                    var tick = 0;
+                    var t = setInterval(function() {
+                        tick++;
+                        if (SDK_LOADED) { clearInterval(t); resolve(); }
+                        else if (tick > 60) { clearInterval(t); reject(new Error('SDK load timeout')); }
+                    }, 500);
+                    return;
+                }
+                SDK_LOADING = true;
+
+                var script = document.createElement('script');
+                // 正确 URL：maps 前面没有 v2/
+                script.src = 'https://webapi.amap.com/maps?v=2.0&key=' + AMAP_KEY + '&plugin=AMap.Geolocation';
+                script.onload = function() {
+                    // SDK 加载后稍等一下插件注册
+                    setTimeout(function() {
+                        SDK_LOADED = true;
+                        resolve();
+                    }, 300);
+                };
+                script.onerror = function() {
+                    SDK_LOADING = false;
+                    reject(new Error('SDK script 加载失败'));
+                };
+                document.head.appendChild(script);
+            });
+        }
+
+        // ========= SDK 方式 GPS 精确定位（内部完成逆地理编码）=========
+        function sdkGPS() {
+            return new Promise(function(resolve, reject) {
+                if (!window.AMap || !AMap.Geolocation) {
+                    reject(new Error('AMap SDK 未就绪'));
+                    return;
+                }
+                var geo = new AMap.Geolocation({
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    needAddress: true,       // 关键：直接返回结构化地址
+                    extensions: 'all',       // 返回详细地址（含街道门牌号）
+                });
+                geo.getCurrentPosition(function(status, result) {
+                    if (status === 'complete' && result) {
+                        resolve({
+                            formattedAddress: result.formattedAddress || '',
+                            addressComponent: result.addressComponent || {},
+                        });
+                    } else {
+                        var msg = (result && result.message) ? result.message : 'GPS 定位失败';
+                        reject(new Error(msg));
+                    }
+                });
+            });
+        }
+
+        // ========= 主流程 =========
+
+        // 阶段1：用免费 IP API 快速展示城市级地址（不依赖 SDK）
+        function quickIPFallback() {
+            freeIP()
+                .then(function(info) { showCityLevel(info); })
+                .catch(function() { showError('网络异常，请点击重试'); });
+        }
+
+        // 阶段2：加载 SDK 后尝试 GPS 精确定位
+        function trySDKAndGPS() {
+            loadAMapSDK().then(function() {
+                return sdkGPS();
+            }).then(function(info) {
+                showGPSDetail(info);
+            }).catch(function(err) {
+                console.warn('SDK/GPS 失败:', err.message || err);
+                // SDK 或 GPS 失败 → 不影响，IP 结果已经展示了
+                // 但保留 GPS 引导提示
+                if (addressDisplay.textContent.indexOf('⚠️') === -1
+                    && addressDisplay.textContent.indexOf('正在') === -1) {
+                    gpsHint.classList.add('show');
+                }
+            });
+        }
+
+        // 手动触发的 GPS 请求（用户点了"开启精确定位"按钮）
+        function requestGPS() {
+            gpsHint.classList.remove('show');
+            cardTitle.textContent = '📍 正在获取精确位置...';
+            loadAMapSDK().then(function() {
+                return sdkGPS();
+            }).then(function(info) {
+                showGPSDetail(info);
+            }).catch(function(err) {
+                console.warn('GPS 失败:', err.message || err);
+                // 恢复城市级显示，重新显示引导
+                gpsHint.classList.add('show');
+                alert('精确定位失败，请确保已允许浏览器获取您的位置。\n\n(' + (err.message || '未知错误') + ')');
+            });
+        }
+
         function getLocation() {
             addressDisplay.textContent = '正在获取位置...';
             addressDisplay.classList.add('loading-text');
             addressDisplay.classList.remove('error-text');
+            cardTitle.textContent = '📍 正在定位...';
             detailDisplay.innerHTML = '';
+            gpsHint.classList.remove('show');
             refreshBtn.style.display = 'none';
 
-            // 通道1 & 通道2 并行赛跑（都不需要用户授权）
-            Promise.any([fetchAmapIP(), fetchFreeIP()])
-                .then(function (result) {
-                    renderLocation(result, null);
-                    refreshBtn.style.display = 'inline-block';
-                })
-                .catch(function () {
-                    // 两个 IP 通道都挂了
-                    showError('网络异常，请检查网络后点击重试');
-                    refreshBtn.style.display = 'inline-block';
-                });
+            // 先快速出 IP 城市级结果
+            quickIPFallback();
 
-            // 通道3 在后台静默尝试，成功就更新为精确地址
-            fetchGPS()
-                .then(function (result) {
-                    renderLocation(result, null);
-                })
-                .catch(function () {
-                    // GPS 失败是正常的（用户拒绝或设备不支持），静默忽略
-                });
+            // 后台加载 SDK 拿 GPS 精确地址
+            trySDKAndGPS();
+
+            refreshBtn.style.display = 'inline-block';
         }
 
-        // 页面加载即运行，无需等待任何 SDK
         getLocation();
     </script>
 </body>
