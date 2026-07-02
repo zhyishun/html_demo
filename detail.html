@@ -129,7 +129,7 @@
             </p>
         </div>
 
-        <div class="footer">高德地图提供位置服务 © 2024 — v4</div>
+        <div class="footer">高德地图提供位置服务 © 2024 — v5</div>
     </div>
 
     <!-- ============ 高德 JS API SDK（正确 URL：maps 不是 v2/maps）============ -->
@@ -186,10 +186,6 @@
         }
 
         function showGPSDetail(info) {
-            addressDisplay.classList.remove('loading-text', 'error-text');
-            cardTitle.textContent = '📍 您当前的位置（精确 · GPS定位）';
-            gpsHint.classList.remove('show');
-
             var comp = info.addressComponent || {};
             var addr = info.formattedAddress || [
                 comp.province,
@@ -198,11 +194,22 @@
                 comp.township && comp.township !== '[]' ? comp.township : '',
                 comp.street   && comp.street   !== '[]' ? comp.street   : '',
                 comp.streetNumber && comp.streetNumber !== '[]' ? comp.streetNumber : ''
-            ].filter(Boolean).join('') || '定位成功';
-            addressDisplay.textContent = addr;
+            ].filter(Boolean).join('');
+
+            // GPS 返回空数据 → 不覆盖已有内容
+            if (!addr && !info.formattedAddress) {
+                console.warn('GPS 返回了空地址，保留当前显示');
+                return;
+            }
+
+            addressDisplay.classList.remove('loading-text', 'error-text');
+            cardTitle.textContent = '📍 您当前的位置（精确 · GPS定位）';
+            gpsHint.classList.remove('show');
+            gpsDeniedHint.style.display = 'none';
+            addressDisplay.textContent = addr || info.formattedAddress || '定位成功';
 
             var tags = [];
-            if (info.formattedAddress) tags.push('详细地址: ' + info.formattedAddress);
+            if (info.formattedAddress) tags.push(info.formattedAddress);
             if (comp.province)                        tags.push(comp.province);
             if (comp.city      && comp.city     !=='[]') tags.push(comp.city);
             if (comp.district  && comp.district !=='[]') tags.push(comp.district);
@@ -305,8 +312,6 @@
         }
 
         // ========= 主流程 =========
-
-        // 全程走 SDK：先 IP（城市级，秒出），再 GPS（精确，需授权）
         function getLocation() {
             addressDisplay.textContent = '正在获取位置...';
             addressDisplay.classList.add('loading-text');
@@ -314,31 +319,18 @@
             cardTitle.textContent = '📍 正在定位...';
             detailDisplay.innerHTML = '';
             gpsHint.classList.remove('show');
+            gpsDeniedHint.style.display = 'none';
             refreshBtn.style.display = 'none';
 
-            // 第一步：加载 SDK
             loadAMapSDK().then(function() {
-
-                // 第二步：SDK 内置 IP 定位 → 城市级，无需授权，立刻出结果
+                // IP 定位 — 无需授权，直接展示城市级结果
                 sdkCityByIP().then(function(info) {
                     showCityLevel(info);
                 }).catch(function(err) {
                     console.warn('IP定位失败:', err.message);
                     showError('IP 定位失败，请点击重试');
                 });
-
-                // 第三步：尝试 GPS 精确定位 → 需用户同意授权
-                sdkGPS(false).then(function(info) {
-                    showGPSDetail(info);
-                }).catch(function(err) {
-                    console.warn('GPS 定位失败:', err.message);
-                    // GPS 失败不影响，城市级结果已经在展示了
-                    if (err.isPermissionDenied) {
-                        gpsHint.classList.remove('show');
-                        gpsDeniedHint.style.display = 'block';
-                    }
-                });
-
+                // GPS 不自动跑，等用户主动点击按钮
             }).catch(function(err) {
                 console.error('SDK 加载失败:', err.message);
                 showError('高德地图服务加载失败，请刷新重试');
