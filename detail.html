@@ -112,6 +112,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
       <!-- 结果 -->
       <div class="loc-box hidden" id="modal-result" style="box-shadow:none;margin-top:0;padding:0">
         <div class="lr"><span class="li">📍</span><span class="la" id="mla"></span></div>
+        <div class="lr hidden" id="ml-row-road"><span class="li">🏠</span><span class="la" id="ml-road"></span></div>
+        <div class="lr hidden" id="ml-row-district"><span class="li">🏘️</span><span class="la" id="ml-district"></span></div>
         <div class="lr hidden" id="ml-row-city"><span class="li">🏙️</span><span class="la" id="ml-city"></span></div>
         <div class="lr hidden" id="ml-row-province"><span class="li">🏛️</span><span class="la" id="ml-province"></span></div>
         <div class="lr hidden" id="ml-row-country"><span class="li">🌍</span><span class="la" id="ml-country"></span></div>
@@ -135,6 +137,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 var $ = function(s){ return document.querySelector(s) };
 var cardData = null;
 var geoDone = false;
+
+var AMAP_KEY = 'c6b4a865b7cd1c2d933e8699dd9f7768';
 
 // 显示/隐藏详情行
 function setDetailRow(rowId, elId, val){
@@ -211,30 +215,37 @@ document.addEventListener('click', function(e){
 
 // 弹窗内获取位置
 function getLocation(){
-  if(geoDone){ return; }
+  if(geoDone){ console.log('[getLocation] 已获取过，跳过'); return; }
 
   $('#modal-loading').classList.remove('hidden');
   $('#modal-result').classList.add('hidden');
   $('#modal-error').classList.add('hidden');
 
+  console.log('[getLocation] 开始获取位置...');
   gps()
-    .catch(ipCo)
-    .catch(ipCom)
+    .catch(function(e){ console.warn('[getLocation] GPS 失败:', e.message); return ipCo(); })
+    .catch(function(e){ console.warn('[getLocation] ipapi.co 失败:', e.message); return ipCom(); })
     .then(function(r){
       geoDone = true;
+      console.log('[getLocation] 成功! 来源:', r.src, '坐标:', r.lat, r.lon);
       $('#modal-loading').classList.add('hidden');
       $('#modal-result').classList.remove('hidden');
 
       var addr = r.addr || {};
-      // 详细地址（中文）
+      console.log('[getLocation] 地址数据:', addr);
+      // 完整地址
       $('#mla').textContent = addr.display_name || r.lat + ', ' + r.lon;
-      // 城市/区县
+      // 街道/路 + 门牌号
+      setDetailRow('ml-row-road', 'ml-road', addr.road);
+      // 区/县 + 街道/镇
+      setDetailRow('ml-row-district', 'ml-district', addr.district);
+      // 市
       setDetailRow('ml-row-city', 'ml-city', addr.city);
-      // 省/州
+      // 省
       setDetailRow('ml-row-province', 'ml-province', addr.province);
       // 国家
       setDetailRow('ml-row-country', 'ml-country', addr.country);
-      // 邮编
+      // 邮编/行政区划代码
       setDetailRow('ml-row-postcode', 'ml-postcode', addr.postcode);
       // 经纬度
       $('#mlc').textContent = r.lat.toFixed(6) + ', ' + r.lon.toFixed(6) + (r.acc ? ' (±' + r.acc + 'm)' : '');
@@ -245,7 +256,7 @@ function getLocation(){
         $('#mls').textContent = '🌐 IP · 近似';
         $('#mls').style.cssText = 'background:#FFF3E0;color:#E65100';
       }
-      var mapUrl = 'https://staticmap.openstreetmap.de/staticmap.php?center=' + r.lat + ',' + r.lon + '&zoom=14&size=400x200&markers=' + r.lat + ',' + r.lon + ',red-pushpin';
+      var mapUrl = 'https://staticmap.openstreetmap.de/staticmap.php?center=' + r.lat + ',' + r.lon + '&zoom=15&size=400x200&markers=' + r.lat + ',' + r.lon + ',red-pushpin';
       $('#mlm').innerHTML = '<img src="' + mapUrl + '" alt="地图" loading="lazy" onerror="this.parentElement.innerHTML=\'<div style=padding:40px;text-align:center;color:#999>地图不可用</div>\'">';
     })
     .catch(function(err){
@@ -268,7 +279,7 @@ function gps(){
     }, function(){
       clearTimeout(t);
       reject(new Error('GPS未授权，尝试IP定位...'));
-    }, { enableHighAccuracy:false, timeout:10000, maximumAge:60000 });
+    }, { enableHighAccuracy:true, timeout:15000, maximumAge:30000 });
   });
 }
 
@@ -280,17 +291,11 @@ function ipCo(){
     return r.json();
   }).then(function(d){
     if(d.error) throw new Error(d.reason);
-    // IP定位后也用 Nominatim 反查中文地址
     return rgeo(d.latitude, d.longitude).then(function(parts){
-      // 如果 Nominatim 没返回城市/国家，用 IP API 的结果兜底
       if(!parts.city && d.city) parts.city = d.city;
       if(!parts.province && d.region) parts.province = d.region;
       if(!parts.country && d.country_name) parts.country = d.country_name;
-      return {
-        lat:d.latitude, lon:d.longitude,
-        addr:parts,
-        src:'ip', acc:null
-      };
+      return { lat:d.latitude, lon:d.longitude, addr:parts, src:'ip', acc:null };
     });
   }).catch(function(e){ clearTimeout(t); throw e; });
 }
@@ -302,26 +307,15 @@ function ipCom(){
     window[cb] = function(d){
       clearTimeout(t); delete window[cb];
       if(d && d.lat !== undefined){
-        // IP JSONP 定位后也用 Nominatim 反查中文地址
         rgeo(d.lat, d.lon).then(function(parts){
           if(!parts.city && d.city) parts.city = d.city;
           if(!parts.province && d.regionName) parts.province = d.regionName;
           if(!parts.country && d.country) parts.country = d.country;
-          resolve({
-            lat:d.lat, lon:d.lon,
-            addr:parts,
-            src:'ip', acc:null
-          });
+          resolve({ lat:d.lat, lon:d.lon, addr:parts, src:'ip', acc:null });
         }).catch(function(){
-          // Nominatim 也失败，用 IP 原始数据
           resolve({
             lat:d.lat, lon:d.lon,
-            addr:{
-              display_name: [d.city, d.regionName, d.country].filter(Boolean).join(', ') || d.lat+','+d.lon,
-              city: d.city || '',
-              province: d.regionName || '',
-              country: d.country || ''
-            },
+            addr:{ display_name: [d.city, d.regionName, d.country].filter(Boolean).join(', ') || d.lat+','+d.lon, city: d.city || '', province: d.regionName || '', country: d.country || '', district: '', road: '', postcode: '' },
             src:'ip', acc:null
           });
         });
@@ -334,46 +328,67 @@ function ipCom(){
   });
 }
 
-var _gc={}, _lg=0;
+// ========== 高德地图逆地理编码 ==========
+var _gc={};
 function rgeo(lat, lon){
-  var k = lat.toFixed(3)+','+lon.toFixed(3);
+  var k = lat.toFixed(4)+','+lon.toFixed(4);
   if(_gc[k]) return Promise.resolve(_gc[k]);
-  var w = Math.max(0, 1100-(Date.now()-_lg)); _lg=Date.now()+w;
-  var p = w ? new Promise(function(r){ setTimeout(r, w); }) : Promise.resolve();
-  return p.then(function(){
-    return fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+lat+'&lon='+lon+'&zoom=18&addressdetails=1&accept-language=zh-CN', {
-      headers:{ 'User-Agent':'Card/1.0' }
-    });
-  }).then(function(r){
-    if(!r.ok) throw new Error('fail');
+
+  // 高德逆地理编码 API：location=经度,纬度
+  var url = 'https://restapi.amap.com/v3/geocode/regeo?key=' + AMAP_KEY +
+    '&location=' + lon.toFixed(6) + ',' + lat.toFixed(6) +
+    '&extensions=all&output=JSON';
+
+  console.log('[rgeo] 请求高德:', lat.toFixed(6), lon.toFixed(6));
+  return fetch(url).then(function(r){
+    if(!r.ok) throw new Error('高德 HTTP '+r.status);
     return r.json();
   }).then(function(d){
-    var ad = d.address || {};
-    var parts = {
-      display_name: d.display_name || '',
-      country: ad.country || '',
-      province: ad.state || ad.province || '',
-      city: ad.city || ad.town || ad.county || ad.district || '',
-      district: ad.suburb || ad.borough || ad.neighbourhood || '',
-      road: ad.road || ad.pedestrian || ad.footway || '',
-      postcode: ad.postcode || ''
-    };
-    // 如果没有独立的 city/province，尝试从 display_name 拆分
-    // Nominatim 中文 display_name 通常格式: 详细地址, 城市, 省, 国家
-    if(!parts.city || !parts.province){
-      var nameParts = (d.display_name || '').split(',');
-      if(nameParts.length >= 3){
-        if(!parts.country) parts.country = nameParts[nameParts.length-1].trim();
-        if(!parts.province) parts.province = nameParts[nameParts.length-2].trim();
-        if(!parts.city && nameParts.length >= 4) parts.city = nameParts[nameParts.length-3].trim();
-      }
+    console.log('[rgeo] 高德响应:', d);
+    if(d.status !== '1' || !d.regeocode) throw new Error('高德错误: ' + (d.info || 'unknown'));
+
+    var ac = d.regeocode.addressComponent || {};
+    var sn = ac.streetNumber || {};
+    var nb = ac.neighborhood || {};
+    var bd = ac.building || {};
+    var fa = d.regeocode.formatted_address || '';
+
+    // 街道/路 + 门牌号
+    var roadFull = (sn.street || '') + ((sn.street && sn.number) ? ' ' + sn.number : (sn.number || ''));
+    if(!roadFull && bd.name) roadFull = bd.name;
+
+    // 区/县
+    var district = ac.district || '';
+    // 街道/镇
+    var township = ac.township || '';
+    var districtFull = district;
+    if(township && township !== district) districtFull = districtFull + (districtFull ? ' · ' : '') + township;
+
+    // 小区/大厦名
+    var poi = nb.name || bd.name || '';
+    if(poi && roadFull && poi !== roadFull && roadFull.indexOf(poi) === -1){
+      roadFull = poi + ' ' + roadFull;
     }
+
+    var parts = {
+      display_name: fa,
+      country: ac.country || '',
+      province: ac.province || '',
+      city: ac.city || '',
+      district: districtFull,
+      township: township,
+      road: roadFull,
+      postcode: ac.adcode || ''
+    };
+
+    console.log('[rgeo] 解析结果:', parts);
     _gc[k] = parts;
     return _gc[k];
-  }).catch(function(){
+  }).catch(function(e){
+    console.warn('[rgeo] 高德失败:', e.message);
     return {
       display_name: lat.toFixed(4)+', '+lon.toFixed(4),
-      country:'', province:'', city:'', district:'', road:'', postcode:''
+      country:'', province:'', city:'', district:'', township:'', road:'', postcode:''
     };
   });
 }
