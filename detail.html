@@ -149,23 +149,17 @@
 
         // ========= 渲染 =========
         function showCityLevel(raw) {
+            console.log('*** showCityLevel 被调用了 ***');
+            console.log('原始数据:', JSON.stringify(raw));
+
             addressDisplay.classList.remove('loading-text', 'error-text');
             cardTitle.textContent = '📍 您当前的位置（城市级 · IP定位）';
 
-            // getCityInfo 返回的可能是扁平结构 {province, city, district}
-            // 也可能是 {info: "SUCCESS", province, city, ...}
-            // 兼容两种格式
             var info = raw || {};
             var prov = trimField(info.province);
             var city = trimField(info.city);
             var dist = trimField(info.district);
             var adcd = info.adcode || '';
-
-            // 如果直接字段为空，尝试从返回的字符串中提取（有些版本返回纯文本）
-            if (!prov && !city) {
-                var rawStr = JSON.stringify(raw);
-                console.log('getCityInfo 原始返回:', rawStr);
-            }
 
             var parts = [];
             if (prov) parts.push(prov);
@@ -180,8 +174,10 @@
             if (dist) tags.push(dist);
             if (adcd) tags.push('编码: ' + adcd);
             if (tags.length === 0) {
-                // 没有任何信息，把完整原始数据展示出来方便排查
-                tags.push(JSON.stringify(raw).substring(0, 200));
+                // 没解析到任何字段 → 把 keys 和原始数据一起显示方便排查
+                var keys = Object.keys(raw).join(', ');
+                tags.push('字段: ' + keys);
+                tags.push('Raw: ' + JSON.stringify(raw).substring(0, 300));
             }
             detailDisplay.innerHTML = tags.map(function(t) {
                 return '<span>' + t + '</span>';
