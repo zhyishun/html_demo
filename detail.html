@@ -99,6 +99,13 @@
                 💡 以上为城市级定位（基于IP）。<br>开启 GPS 可获取<strong>街道级精确地址</strong>。
                 <br><button class="gps-btn" onclick="requestGPS()">📍 开启精确定位</button>
             </div>
+            <div class="gps-hint" id="gpsDeniedHint" style="display:none;">
+                ⚠️ 定位权限已被拒绝。请按以下步骤开启：<br>
+                <strong>Chrome / Edge</strong>：地址栏左侧锁图标 → 位置 → 允许<br>
+                <strong>Safari</strong>：Safari 菜单 → 此网站的设置 → 位置 → 允许<br>
+                <strong>手机浏览器</strong>：设置 → 隐私 → 定位服务 → 开启<br>
+                设置后请<strong>刷新页面</strong>重新尝试。
+            </div>
             <button class="refresh-btn" id="refreshBtn" onclick="getLocation()">🔄 重新定位</button>
         </div>
 
@@ -137,6 +144,7 @@
         var detailDisplay  = document.getElementById('detailDisplay');
         var cardTitle      = document.getElementById('cardTitle');
         var gpsHint        = document.getElementById('gpsHint');
+        var gpsDeniedHint  = document.getElementById('gpsDeniedHint');
         var refreshBtn     = document.getElementById('refreshBtn');
 
         // ========= 渲染 =========
@@ -163,6 +171,7 @@
             }).join('');
 
             gpsHint.classList.add('show');
+            gpsDeniedHint.style.display = 'none';
         }
 
         function showGPSDetail(info) {
@@ -251,15 +260,17 @@
         }
 
         // ========= SDK — GPS 精确定位（需要用户授权）=========
-        function sdkGPS() {
+        function sdkGPS(highAccuracy) {
+            // highAccuracy 为 false 时使用低精度模式，权限要求更宽松
+            if (highAccuracy === undefined) highAccuracy = true;
             return new Promise(function(resolve, reject) {
                 if (!window.AMap || !AMap.Geolocation) {
                     reject(new Error('SDK 未就绪'));
                     return;
                 }
                 var gpsGeo = new AMap.Geolocation({
-                    enableHighAccuracy: true,
-                    timeout: 10000,
+                    enableHighAccuracy: highAccuracy,
+                    timeout: 15000,
                     needAddress: true,
                     extensions: 'all',
                 });
@@ -271,7 +282,12 @@
                         });
                     } else {
                         var msg = (result && result.message) ? result.message : '用户拒绝授权或定位超时';
-                        reject(new Error(msg));
+                        // 标记是否是权限被拒绝
+                        var err = new Error(msg);
+                        err.isPermissionDenied = (msg.indexOf('permission denied') !== -1
+                            || msg.indexOf('PERMISSION_DENIED') !== -1
+                            || msg.indexOf('denied') !== -1);
+                        reject(err);
                     }
                 });
             });
@@ -301,12 +317,15 @@
                 });
 
                 // 第三步：尝试 GPS 精确定位 → 需用户同意授权
-                sdkGPS().then(function(info) {
+                sdkGPS(false).then(function(info) {
                     showGPSDetail(info);
                 }).catch(function(err) {
                     console.warn('GPS 定位失败:', err.message);
                     // GPS 失败不影响，城市级结果已经在展示了
-                    // gpsHint 已在 showCityLevel 中显示
+                    if (err.isPermissionDenied) {
+                        gpsHint.classList.remove('show');
+                        gpsDeniedHint.style.display = 'block';
+                    }
                 });
 
             }).catch(function(err) {
@@ -320,13 +339,26 @@
         // 手动触发 GPS
         function requestGPS() {
             gpsHint.classList.remove('show');
+            gpsDeniedHint.style.display = 'none';
             cardTitle.textContent = '📍 正在获取精确位置...';
-            sdkGPS().then(function(info) {
+
+            // 先尝试低精度模式（权限要求更宽松），再尝试高精度
+            sdkGPS(false).then(function(info) {
                 showGPSDetail(info);
+            }).catch(function() {
+                // 低精度失败，尝试高精度
+                return sdkGPS(true);
+            }).then(function(info) {
+                if (info) showGPSDetail(info);
             }).catch(function(err) {
                 console.warn('GPS 失败:', err.message);
-                gpsHint.classList.add('show');
-                alert('精确定位失败：' + (err.message || '未知错误') + '\n\n请确保已允许浏览器获取位置权限。');
+                gpsHint.classList.remove('show');
+                if (err.isPermissionDenied) {
+                    // 权限被拒绝 → 显示详细指引
+                    gpsDeniedHint.style.display = 'block';
+                } else {
+                    gpsHint.classList.add('show');
+                }
             });
         }
 
