@@ -96,15 +96,14 @@
             </div>
             <div class="detail" id="detailDisplay"></div>
             <div class="gps-hint" id="gpsHint">
-                💡 以上为城市级定位（基于IP）。<br>开启 GPS 可获取<strong>街道级精确地址</strong>。
-                <br><button class="gps-btn" onclick="requestGPS()">📍 开启精确定位</button>
+                🔍 正在尝试获取精确位置...
             </div>
             <div class="gps-hint" id="gpsDeniedHint" style="display:none;">
                 ⚠️ 定位权限已被拒绝。请按以下步骤开启：<br>
                 <strong>Chrome / Edge</strong>：地址栏左侧锁图标 → 位置 → 允许<br>
                 <strong>Safari</strong>：Safari 菜单 → 此网站的设置 → 位置 → 允许<br>
-                <strong>手机浏览器</strong>：设置 → 隐私 → 定位服务 → 开启<br>
-                设置后请<strong>刷新页面</strong>重新尝试。
+                <strong>微信</strong>：我 → 设置 → 隐私 → 定位服务 → 开启<br>
+                设置后<button class="gps-btn" onclick="getLocation()" style="margin-left:8px;">🔄 重新定位</button>
             </div>
             <button class="refresh-btn" id="refreshBtn" onclick="getLocation()">🔄 重新定位</button>
         </div>
@@ -129,7 +128,7 @@
             </p>
         </div>
 
-        <div class="footer">高德地图提供位置服务 © 2024 — v6</div>
+        <div class="footer">高德地图提供位置服务 © 2024 — v8</div>
     </div>
 
     <!-- ============ 高德 JS API SDK（正确 URL：maps 不是 v2/maps）============ -->
@@ -212,6 +211,7 @@
             cardTitle.textContent = '📍 您当前的位置（精确 · GPS定位）';
             gpsHint.classList.remove('show');
             gpsDeniedHint.style.display = 'none';
+            gpsDeniedHint.style.display = 'none';
             addressDisplay.textContent = addr || info.formattedAddress || '定位成功';
 
             var tags = [];
@@ -234,6 +234,81 @@
             cardTitle.textContent = '📍 定位失败';
             detailDisplay.innerHTML = '<span class="error-text">' + msg + '</span>';
             gpsHint.classList.remove('show');
+            gpsDeniedHint.style.display = 'none';
+        }
+
+        // ========= 兜底方案：纯 HTTP IP 定位（不依赖任何 SDK）=========
+        // 多个免费 IP 服务并行赛跑，微信 / 移动端都能用
+
+        function timeout(ms) {
+            return new Promise(function(_, reject) {
+                setTimeout(function() { reject(new Error('timeout')); }, ms);
+            });
+        }
+
+        function fetchWithTimeout(url, ms) {
+            return Promise.race([
+                fetch(url),
+                timeout(ms)
+            ]);
+        }
+
+        function fetchIP_apisfb() {
+            return fetchWithTimeout('https://api.ip.sb/geoip', 5000)
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    if (d && d.country) {
+                        return { province: d.region || '', city: d.city || '', dist: '', source: 'ip.sb' };
+                    }
+                    throw new Error('empty');
+                });
+        }
+
+        function fetchIP_ifconfig() {
+            return fetchWithTimeout('https://ifconfig.co/json', 5000)
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    if (d && d.country) {
+                        return { province: d.region_name || '', city: d.city || '', dist: '', source: 'ifconfig' };
+                    }
+                    throw new Error('empty');
+                });
+        }
+        function showFreeIPResult(result) {
+            addressDisplay.classList.remove('loading-text', 'error-text');
+            cardTitle.textContent = '📍 您当前的位置（城市级 · 网络定位）';
+            gpsDeniedHint.style.display = 'none';
+
+            var prov = trimField(result.province);
+            var city = trimField(result.city);
+            var dist = trimField(result.district);
+            var parts = [];
+            if (prov) parts.push(prov);
+            if (city) parts.push(city);
+            if (dist) parts.push(dist);
+            addressDisplay.textContent = parts.join(' ') || '定位成功';
+
+            var tags = [];
+            if (prov) tags.push(prov);
+            if (city) tags.push(city);
+            if (dist) tags.push(dist);
+            detailDisplay.innerHTML = tags.map(function(t) {
+                return '<span>' + t + '</span>';
+            }).join('');
+
+            // GPS 会在后台自动尝试
+        }
+
+        // 纯 HTTP 兜底定位
+        function fallbackIPLocation() {
+            return new Promise(function(resolve, reject) {
+                // 两个直接返回城市信息的服务赛跑
+                Promise.any([fetchIP_apisfb(), fetchIP_ifconfig()])
+                    .then(function(r) { resolve(r); })
+                    .catch(function() {
+                        reject(new Error('所有 IP 服务均不可用'));
+                    });
+            });
         }
 
         // ========= 加载高德 SDK =========
@@ -328,47 +403,42 @@
             gpsDeniedHint.style.display = 'none';
             refreshBtn.style.display = 'none';
 
-            loadAMapSDK().then(function() {
-                // IP 定位 — 无需授权，直接展示城市级结果
-                sdkCityByIP().then(function(info) {
-                    showCityLevel(info);
+            // 通道 A：SDK
+            var sdkPromise = loadAMapSDK().then(function() {
+                return sdkCityByIP();
+            }).then(function(info) {
+                showCityLevel(info);
+                // 城市级结果出来后，自动尝试 GPS 精确位置
+                return sdkGPS(false).then(function(gpsInfo) {
+                    showGPSDetail(gpsInfo);
                 }).catch(function(err) {
-                    console.warn('IP定位失败:', err.message);
-                    showError('IP 定位失败，请点击重试');
+                    console.warn('自动 GPS 失败:', err.message);
+                    gpsHint.classList.remove('show');
+                    if (err.isPermissionDenied) {
+                        gpsDeniedHint.style.display = 'block';
+                    }
                 });
-                // GPS 不自动跑，等用户主动点击按钮
-            }).catch(function(err) {
-                console.error('SDK 加载失败:', err.message);
-                showError('高德地图服务加载失败，请刷新重试');
+            }).then(function() {
+                return 'sdk';
+            });
+
+            // 通道 B：免费 IP API
+            var freePromise = fallbackIPLocation().then(function(info) {
+                showFreeIPResult(info);
+                // 用免费 IP 时也尝试加载 SDK 拿 GPS
+                loadAMapSDK().then(function() {
+                    return sdkGPS(false);
+                }).then(function(gpsInfo) {
+                    showGPSDetail(gpsInfo);
+                }).catch(function() {});
+                return 'free';
+            });
+
+            Promise.any([sdkPromise, freePromise]).catch(function() {
+                showError('网络异常，请点击重试');
             });
 
             refreshBtn.style.display = 'inline-block';
-        }
-
-        // 手动触发 GPS
-        function requestGPS() {
-            gpsHint.classList.remove('show');
-            gpsDeniedHint.style.display = 'none';
-            cardTitle.textContent = '📍 正在获取精确位置...';
-
-            // 先尝试低精度模式（权限要求更宽松），再尝试高精度
-            sdkGPS(false).then(function(info) {
-                showGPSDetail(info);
-            }).catch(function() {
-                // 低精度失败，尝试高精度
-                return sdkGPS(true);
-            }).then(function(info) {
-                if (info) showGPSDetail(info);
-            }).catch(function(err) {
-                console.warn('GPS 失败:', err.message);
-                gpsHint.classList.remove('show');
-                if (err.isPermissionDenied) {
-                    // 权限被拒绝 → 显示详细指引
-                    gpsDeniedHint.style.display = 'block';
-                } else {
-                    gpsHint.classList.add('show');
-                }
-            });
         }
 
         getLocation();
