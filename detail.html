@@ -148,30 +148,55 @@
         var refreshBtn     = document.getElementById('refreshBtn');
 
         // ========= 渲染 =========
-        function showCityLevel(info) {
+        function showCityLevel(raw) {
             addressDisplay.classList.remove('loading-text', 'error-text');
             cardTitle.textContent = '📍 您当前的位置（城市级 · IP定位）';
 
+            // getCityInfo 返回的可能是扁平结构 {province, city, district}
+            // 也可能是 {info: "SUCCESS", province, city, ...}
+            // 兼容两种格式
+            var info = raw || {};
+            var prov = trimField(info.province);
+            var city = trimField(info.city);
+            var dist = trimField(info.district);
+            var adcd = info.adcode || '';
+
+            // 如果直接字段为空，尝试从返回的字符串中提取（有些版本返回纯文本）
+            if (!prov && !city) {
+                var rawStr = JSON.stringify(raw);
+                console.log('getCityInfo 原始返回:', rawStr);
+            }
+
             var parts = [];
-            var prov = (info.province && info.province !== '[]') ? info.province : '';
-            var city = (info.city     && info.city     !== '[]') ? info.city     : '';
-            var dist = (info.district && info.district !== '[]') ? info.district : '';
             if (prov) parts.push(prov);
             if (city) parts.push(city);
             if (dist) parts.push(dist);
-            addressDisplay.textContent = parts.join(' ') || '定位成功';
+            var displayAddr = parts.join(' ') || '定位成功';
+            addressDisplay.textContent = displayAddr;
 
             var tags = [];
             if (prov) tags.push(prov);
             if (city) tags.push(city);
             if (dist) tags.push(dist);
-            if (info.adcode) tags.push('编码: ' + info.adcode);
+            if (adcd) tags.push('编码: ' + adcd);
+            if (tags.length === 0) {
+                // 没有任何信息，把完整原始数据展示出来方便排查
+                tags.push(JSON.stringify(raw).substring(0, 200));
+            }
             detailDisplay.innerHTML = tags.map(function(t) {
                 return '<span>' + t + '</span>';
             }).join('');
 
             gpsHint.classList.add('show');
             gpsDeniedHint.style.display = 'none';
+        }
+
+        function trimField(val) {
+            if (!val) return '';
+            if (val === '[]') return '';
+            var s = String(val).trim();
+            if (s === '[]' || s === 'null' || s === 'undefined') return '';
+            return s;
         }
 
         function showGPSDetail(info) {
