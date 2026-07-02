@@ -224,6 +224,7 @@ function getLocation(){
   console.log('[getLocation] 开始获取位置...');
   gps()
     .catch(function(e){ console.warn('[getLocation] GPS 失败:', e.message); return ipCo(); })
+    .catch(function(e){ console.warn('[getLocation] ipapi.co 失败:', e.message); return ipCom(); })
     .then(function(r){
       geoDone = true;
       console.log('[getLocation] 成功! 来源:', r.src, '坐标:', r.lat, r.lon);
@@ -297,6 +298,34 @@ function ipCo(){
       return { lat:d.latitude, lon:d.longitude, addr:parts, src:'ip', acc:null };
     });
   }).catch(function(e){ clearTimeout(t); throw e; });
+}
+
+function ipCom(){
+  return new Promise(function(resolve, reject){
+    var cb = '_ip_'+Date.now();
+    var t = setTimeout(function(){ delete window[cb]; reject(new Error('IP超时')); }, 8000);
+    window[cb] = function(d){
+      clearTimeout(t); delete window[cb];
+      if(d && d.lat !== undefined){
+        rgeo(d.lat, d.lon).then(function(parts){
+          if(!parts.city && d.city) parts.city = d.city;
+          if(!parts.province && d.regionName) parts.province = d.regionName;
+          if(!parts.country && d.country) parts.country = d.country;
+          resolve({ lat:d.lat, lon:d.lon, addr:parts, src:'ip', acc:null });
+        }).catch(function(){
+          resolve({
+            lat:d.lat, lon:d.lon,
+            addr:{ display_name: [d.city, d.regionName, d.country].filter(Boolean).join(', ') || d.lat+','+d.lon, city: d.city || '', province: d.regionName || '', country: d.country || '', district: '', road: '', postcode: '' },
+            src:'ip', acc:null
+          });
+        });
+      } else reject(new Error('无数据'));
+    };
+    var s = document.createElement('script');
+    s.src = 'https://ip-api.com/json/?callback='+cb+'&fields=lat,lon,city,regionName,country';
+    s.onerror = function(){ clearTimeout(t); delete window[cb]; reject(new Error('IP服务不可用')); };
+    document.head.appendChild(s);
+  });
 }
 
 // ========== 高德地图逆地理编码 ==========
