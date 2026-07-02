@@ -303,7 +303,7 @@ function initJSSDK(){
   var pageUrl = location.href.split('#')[0].split('?')[0];
   // ★ 注意：ms.gstai.com 只支持 HTTP，HTTPS 不可用
   // 微信内置浏览器不拦截 HTTP 请求，但若遇到问题可联系后端升级为 HTTPS
-  fetch('http://ms.gstai.com/phone/ajax_sign_vue.php?url=' + encodeURIComponent(pageUrl))
+  fetch('/api/sign?url=' + encodeURIComponent(pageUrl))
     .then(function(res){ return res.json(); })
     .then(function(data){
       var p = data.signPackage || data;
