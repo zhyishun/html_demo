@@ -11,7 +11,7 @@
 <!-- 页面部署后，微信爬虫只能读到静态 HTML 中的 OG 标签，所以这里也要同步改 -->
 <meta property="og:title" content="祈福平安健康" id="og-title">
 <meta property="og:description" content="为母亲祈福可通过佛教诵经、回向功德木鱼+++、放生、茹素及现代心灵修行等方式，表达孝心并增福报。" id="og-desc">
-<meta property="og:image" content="https://fengxiang.zhyishun.top/demo2.jpg" id="og-image">
+<meta property="og:image" content="https://fengxiang.zhyishun.top/demo3.jpg" id="og-image">
 <!-- ★ 告诉微信爬虫图片尺寸，帮助生成卡片 -->
 <meta property="og:image:width" content="600">
 <meta property="og:image:height" content="400">
@@ -38,7 +38,7 @@
       document.title = d.t;
       document.getElementById('og-title').setAttribute('content', d.t);
       document.getElementById('og-desc').setAttribute('content', d.d||d.t);
-      var imgUrl = d.i || (BASE + '/demo2.jpg');
+      var imgUrl = d.i || (BASE + '/demo3.jpg');
       if(imgUrl.indexOf('//')===-1) imgUrl = location.origin + '/' + imgUrl.replace(/^\//,'');
       document.getElementById('og-image').setAttribute('content', imgUrl);
     }
@@ -188,7 +188,7 @@ body[data-theme="red"]{--theme:#EE0A24;--theme-d:#D40820}
 // ====== 卡片默认配置（改这里即可全局生效）======
 var CARD_TITLE  = '祈福平安健康';
 var CARD_DESC   = '为母亲祈福可通过佛教诵经、回向功德木鱼+++、放生、茹素及现代心灵修行等方式，表达孝心并增福报。';
-var CARD_IMG    = 'https://fengxiang.zhyishun.top/demo2.jpg';
+var CARD_IMG    = 'https://fengxiang.zhyishun.top/demo3.jpg';
 var TARGET_URL  = 'https://fenxiang.shryg.cn/detail.html';
 
 window._SD = {
