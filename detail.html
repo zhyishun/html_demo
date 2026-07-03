@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>夏至揭秘：酷暑节气全解析</title>
+    <title>为母亲祈福 · 功德回向</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -141,18 +141,6 @@
             100% { opacity: 0; transform: translateX(-50%) translateY(-80px) scale(1); }
         }
 
-        /* 木鱼敲击动画 */
-        .muyu-svg.knocking {
-            animation: muyu-knock 0.3s ease-out;
-        }
-        @keyframes muyu-knock {
-            0%   { transform: scale(1); }
-            25%  { transform: scale(0.88); }
-            50%  { transform: scale(1.05); }
-            75%  { transform: scale(0.96); }
-            100% { transform: scale(1); }
-        }
-
         /* 锤子敲击动画 */
         .mallet-group.knocking {
             animation: mallet-strike 0.3s ease-out;
@@ -216,7 +204,6 @@
             top: -1px;
         }
 
-        .footer { text-align: center; font-size: 12px; color: #999; padding: 20px 0; }
     </style>
 </head>
 <body>
@@ -229,7 +216,10 @@
         </div>
 
         <div class="hero-image">
-            <img src="https://fengxiang.zhyishun.top/xz.jpg" alt="夏至">
+            <img src="https://fengxiang.zhyishun.top/1.jpg" alt="祈福">
+        </div>
+        <div class="hero-image">
+            <img src="https://fengxiang.zhyishun.top/2.jpg" alt="祈福">
         </div>
 
         <!-- 木鱼卡片 -->
@@ -322,27 +312,24 @@
             </div>
         </div>
 
-        <h1 class="title">🌞 夏至揭秘：酷暑节气全解析！</h1>
+        <h1 class="title">🙏 为母亲祈福 · 功德回向</h1>
 
         <div class="content">
             <p>
-                <span class="section-icon">🌞</span>夏至，二十四节气中的第十位，象征着夏天的正式开始。夏至时，太阳直射北回归线，北半球的白昼时间达到最长。夏至的到来，预示着气温的升高和湿度的增大，雷雨天气也时有发生。
+                <span class="section-icon">🪷</span>为母亲祈福可通过佛教诵经、回向功德、放生、茹素及现代心灵修行等方式，表达孝心并增福报。
             </p>
             <p>
-                <span class="section-icon">📜</span><strong>夏至的起源与习俗</strong><br>
-                夏至在中国古代是一个重要的节日，人们会放假三天来庆祝。在这一天，人们会祭神祀祖，祈求丰收和消灾。古人还会赠送扇子，以避暑热，防止痱子的产生。
+                <span class="section-icon">📿</span><strong>佛教经典与祈福方法</strong><br>
+                在佛教中，为母亲祈福主要通过诵经、念佛、持咒等方式实现，并将功德回向给母亲及一切众生。《地藏菩萨本愿经》中记载地藏菩萨为母亲消除业障、增加福报的事迹，显示了通过佛法修行可为母亲带来福寿安康。
             </p>
             <p>
-                <span class="section-icon">🍽</span><strong>夏至的美食推荐</strong><br>
-                夏至时节，饮食也有讲究。绿豆粥、西瓜和荔枝是夏至的常见美食，它们不仅清凉解暑，还能补充营养。此外，吃面也是夏至的传统习俗，寓意着健康长寿。
-            </p>
-            <p>
-                <span class="section-icon">🌃</span><strong>夏至与"不夜城"</strong><br>
-                在中国的漠河市，夏至这天有极昼现象，被称为"不夜城"。白天时间长，夜晚时间短，这里的夏天充满了神秘与魅力。
+                <span class="section-icon">🪵</span><strong>具体方法包括：</strong><br>
+                <strong>诵经回向：</strong>选择《地藏经》或《心经》，每日诵读并敲击木鱼+功德+++回向母亲，祈愿母亲身心安乐、远离病苦。<br>
+                <strong>抄经修持：</strong>抄写经典时专注身心，可净化心灵、增长智慧，同时将功德回向母亲，效果显著。<br>
+                <strong>持咒祈福：</strong>如绿度母心咒，可念108遍或多次，将功德回向天下母亲及家中母亲，祈愿平安顺遂、福泽绵长。
             </p>
         </div>
 
-        <div class="footer">高德地图提供位置服务 © 2024 — v9</div>
     </div>
 
     <!-- ============ 高德 JS API SDK ============ -->
@@ -362,7 +349,6 @@
         // ===== DOM 引用 ====
         var meritCount   = document.getElementById('meritCount');
         var muyuWrapper  = document.getElementById('muyuWrapper');
-        var muyuSvg      = document.getElementById('muyuSvg');
         var malletGroup  = document.getElementById('malletGroup');
         var knockBtn     = document.getElementById('knockBtn');
 
@@ -388,11 +374,6 @@
 
         // ===== 木鱼敲击动画 ====
         function playKnockAnimation() {
-            // 木鱼缩放
-            muyuSvg.classList.remove('knocking');
-            void muyuSvg.offsetWidth;
-            muyuSvg.classList.add('knocking');
-
             // 锤子敲击
             malletGroup.classList.remove('knocking');
             void malletGroup.offsetWidth;
