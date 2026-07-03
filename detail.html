@@ -2,10 +2,15 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>夏至揭秘：酷暑节气全解析</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html {
+            touch-action: manipulation;  /* 禁止 iOS 双击缩放 */
+            -webkit-touch-callout: none; /* 禁止 iOS 长按菜单 */
+        }
 
         body {
             font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
@@ -99,7 +104,20 @@
             cursor: pointer;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
             z-index: 1;
+        }
+
+        /* 心诚则灵 */
+        .muyu-motto {
+            position: relative;
+            z-index: 1;
+            font-size: 22px;
+            font-weight: 700;
+            color: #f9d423;
+            letter-spacing: 8px;
+            margin-bottom: 4px;
+            text-shadow: 0 0 12px rgba(249,212,35,0.35);
         }
 
         /* 功德飘字 */
@@ -180,12 +198,22 @@
             cursor: pointer;
             box-shadow: 0 4px 16px rgba(232,135,10,0.4);
             transition: transform 0.15s, box-shadow 0.15s;
+            touch-action: manipulation;
             position: relative;
             z-index: 1;
         }
         .knock-btn:active {
             transform: scale(0.93);
             box-shadow: 0 2px 8px rgba(232,135,10,0.3);
+        }
+
+        /* 按钮中的小木槌图标 */
+        .btn-mallet {
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 2px;
+            position: relative;
+            top: -1px;
         }
 
         .footer { text-align: center; font-size: 12px; color: #999; padding: 20px 0; }
@@ -207,6 +235,7 @@
         <!-- 木鱼卡片 -->
         <div class="muyu-card" id="muyuCard">
             <div class="card-hint">🪵 敲一下木鱼，功德 +1</div>
+            <div class="muyu-motto">心 诚 则 灵</div>
             <div class="muyu-wrapper" id="muyuWrapper">
                 <!-- 内联 SVG 木鱼 -->
                 <svg class="muyu-svg" id="muyuSvg" viewBox="0 0 260 220" width="200" height="170">
@@ -283,7 +312,13 @@
                 </svg>
             </div>
             <div>
-                <button class="knock-btn" id="knockBtn">🪵 敲 木 鱼</button>
+                <button class="knock-btn" id="knockBtn">
+                    <svg class="btn-mallet" viewBox="0 0 24 24" width="20" height="20">
+                        <line x1="4" y1="22" x2="10" y2="16" stroke="#3e2c1c" stroke-width="2.5" stroke-linecap="round"/>
+                        <ellipse cx="3" cy="21" rx="4" ry="3" fill="#3e2c1c" transform="rotate(-30,3,21)"/>
+                    </svg>
+                    敲 木 鱼
+                </button>
             </div>
         </div>
 
